@@ -18,7 +18,6 @@
           class="flex-1 w-0"
           v-model="running"
           @drag-end="dragRunningEnd"
-          inactive-color="#1989fa"
           active-color="#1989fa"
         />
         <div class="font-24-500 c-999 ml-12 label" style="float: right">
