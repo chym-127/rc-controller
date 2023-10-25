@@ -42,12 +42,23 @@
               {{ gearMapper[gear].txt }}
             </span>
           </div>
+
+          <div class="flex-1">
+            <span class="font-14-500 c-666">定速:&nbsp;&nbsp;</span>
+            <span class="font-14-500" :style="{ color: fixedSpeed ? '#07c160' : '#969799' }">
+              {{ fixedSpeed ? '开' : '关' }}
+            </span>
+          </div>
         </div>
         <div class="flex-1 flex flex-row mb-12 justify-between">
           <div id="chartDomSpeed" class="w-0 flex-1 h-full"></div>
-          <div class="w-0 flex-1"></div>
+          <div id="chartDomAngle" class="w-0 flex-1 h-full"></div>
         </div>
         <div class="flex flex-row justify-center" style="height: max-content">
+          <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleFixedSpeed">
+            <span>定速</span>
+          </van-button>
+          <div class="w-20"></div>
           <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleGear">
             <span>切换档位</span>
           </van-button>
@@ -153,6 +164,9 @@ export default {
       setup: false,
       speedChart: null,
       speedChartOption: null,
+      angleChartOption: null,
+      angleChart: null,
+      fixedSpeed: false,
     };
   },
   watch: {
@@ -175,11 +189,16 @@ export default {
         let deg = 90;
         let diff = parseInt((Math.abs(50 - val) / 0.55555555).toFixed(0));
         if (val > 50) {
-          deg -= diff;
-        }
-        if (val < 50) {
           deg += diff;
         }
+        if (val < 50) {
+          deg -= diff;
+        }
+        this.angleChartOption.series[0].data = [
+          {
+            value: deg,
+          },
+        ];
         this.sendMsg('TURN', deg);
       });
     },
@@ -193,49 +212,56 @@ export default {
   methods: {
     initChart() {
       let chartDom = document.getElementById('chartDomSpeed');
+      let chartDomAngle = document.getElementById('chartDomAngle');
+
       this.speedChart = echarts.init(chartDom);
+      this.angleChart = echarts.init(chartDomAngle);
+
       this.speedChartOption = {
         series: [
           {
             type: 'gauge',
             progress: {
               show: true,
-              width: 5,
+              width: 4,
             },
             axisLine: {
               lineStyle: {
-                width: 5,
+                width: 4,
               },
             },
             axisTick: {
               show: false,
             },
             splitLine: {
-              length: 12,
+              length: 4,
               lineStyle: {
                 width: 2,
                 color: '#999',
               },
             },
             axisLabel: {
-              distance: 15,
+              distance: 14,
               color: '#999',
-              fontSize: 12,
+              fontSize: 14,
             },
             anchor: {
               show: true,
               showAbove: true,
-              size: 14,
+              size: 12,
               itemStyle: {
-                borderWidth: 10,
+                borderWidth: 8,
               },
             },
+            min: 0,
+            max: 120,
+            splitNumber: 6,
             title: {
               show: false,
             },
             detail: {
               valueAnimation: true,
-              fontSize: 20,
+              fontSize: 24,
               offsetCenter: [0, '70%'],
             },
             data: [
@@ -247,12 +273,71 @@ export default {
         ],
       };
 
+      this.angleChartOption = {
+        series: [
+          {
+            type: 'gauge',
+            // progress: {
+            //   show: true,
+            //   width: 4,
+            // },
+            axisLine: {
+              lineStyle: {
+                width: 4,
+              },
+            },
+            axisTick: {
+              show: false,
+            },
+            splitLine: {
+              length: 4,
+              lineStyle: {
+                width: 2,
+                color: '#999',
+              },
+            },
+            axisLabel: {
+              distance: 14,
+              color: '#999',
+              fontSize: 14,
+            },
+            anchor: {
+              show: true,
+              showAbove: true,
+              size: 12,
+              itemStyle: {
+                borderWidth: 8,
+              },
+            },
+            min: 0,
+            max: 180,
+            splitNumber: 6,
+            title: {
+              show: false,
+            },
+            detail: {
+              valueAnimation: true,
+              fontSize: 24,
+              offsetCenter: [0, '70%'],
+            },
+            data: [
+              {
+                value: 90,
+              },
+            ],
+          },
+        ],
+      };
+
       this.speedChartOption && this.speedChart.setOption(this.speedChartOption);
+      this.angleChartOption && this.angleChart.setOption(this.angleChartOption);
+
       setTimeout(() => {
         setInterval(() => {
           this.speedChart.setOption(this.speedChartOption, true);
+          this.angleChart.setOption(this.angleChartOption, true);
         }, 400);
-      }, 100);
+      }, 1000);
     },
     start() {
       this.state = 1;
@@ -265,13 +350,19 @@ export default {
     toggleGear() {
       this.gear = this.gear === 'FORWARD' ? 'BACKWARD' : 'FORWARD';
     },
+    toggleFixedSpeed() {
+      this.fixedSpeed = !this.fixedSpeed;
+      if (!this.fixedSpeed) {
+        this.running = 0;
+      }
+    },
     dragAnglesEnd() {
       if (this.angles !== 50) {
         this.angles = 50;
       }
     },
     dragRunningEnd() {
-      if (this.running !== 0) {
+      if (this.running !== 0 && !this.fixedSpeed) {
         this.running = 0;
       }
     },
