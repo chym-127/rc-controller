@@ -63,6 +63,7 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
       break;
     case WS_EVT_DISCONNECT:
       Serial.printf("WebSocket client #%u disconnected\n", client->id());
+      closeEngine();
       break;
     case WS_EVT_DATA:
       myObject = JSON.parse(converter(data));
@@ -87,36 +88,69 @@ cmd_code hashit(String inString) {
 void onCommond(JSONVar obj) {
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
-  Serial.println(CMD);
-  Serial.println(val);
+  Serial.print(CMD);
+  Serial.print(" -- ");
+  Serial.print(val);
+  Serial.println();
+
+
   switch (hashit(CMD)) {
     case ON:
-      current = ON_STATE;
-      digitalWrite(LED, HIGH);
+      launchEngine();
+      break;
     case OFF:
-      current = OFF_STATE;
-      digitalWrite(LED, LOW);
-      myMotor.stop();
+      closeEngine();
       break;
     case STOP:
-      if (current == OFF_STATE) return;
-      myMotor.stop();
+      motorStop();
       break;
     case FORWARD:
-      if (current == OFF_STATE) return;
-      myMotor.setSpeed(val);
-      myMotor.forward();
+      motorForward();
       break;
     case BACKWARD:
-      if (current == OFF_STATE) return;
-      myMotor.setSpeed(val);
-      myMotor.backward();
+      motorBackward();
       break;
     case TURN:
       if (current == OFF_STATE) return;
       new_pos = val;
       break;
   }
+}
+
+// 启动引擎
+void launchEngine() {
+  Serial.println("launch engine");
+  current = ON_STATE;
+  digitalWrite(LED, HIGH);
+}
+
+// 关闭引擎
+void closeEngine() {
+  Serial.println("close engine");
+  current = OFF_STATE;
+  digitalWrite(LED, LOW);
+  myMotor.stop();
+}
+
+// 电机停止
+void motorStop() {
+  if (current == OFF_STATE) return;
+  myMotor.stop();
+}
+
+
+// 电机正转
+void motorForward() {
+  if (current == OFF_STATE) return;
+  myMotor.setSpeed(val);
+  myMotor.forward();
+}
+
+// 电机反转
+void motorBackward() {
+  if (current == OFF_STATE) return;
+  myMotor.setSpeed(val);
+  myMotor.backward();
 }
 
 // 初始化websocket
