@@ -52,11 +52,25 @@
             <span>切换档位</span>
           </van-button>
           <div class="w-20"></div>
-          <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90">
+          <van-button
+            icon="pause-circle-o"
+            :disabled="wsState != 2 || state == 2"
+            plain
+            type="primary"
+            class="w-90"
+            @click="stop"
+          >
             <span>停止</span>
           </van-button>
           <div class="w-20"></div>
-          <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90">
+          <van-button
+            icon="replay"
+            :disabled="wsState != 2 || state == 1"
+            plain
+            type="primary"
+            class="w-90"
+            @click="start"
+          >
             <span>启动</span>
           </van-button>
         </div>
@@ -241,9 +255,11 @@ export default {
       }, 100);
     },
     start() {
+      this.state = 1;
       this.sendMsg('ON');
     },
     stop() {
+      this.state = 2;
       this.sendMsg('OFF');
     },
     toggleGear() {
