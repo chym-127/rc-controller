@@ -43,9 +43,19 @@ int new_pos = 90;
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 // wifi名称
-const char *ssid = "AOETECH";
+const char *ssid = "RC_C";
+// const char *ssid = "AOETECH";
 // wifi 密码
-const char *password = "67810550";
+const char *password = "15827330290";
+// const char *password = "67810550";
+
+// static ip
+IPAddress local_IP(192, 168, 133, 100);
+IPAddress gateway(192, 168, 133, 1);
+IPAddress subnet(255, 255, 0, 0);
+IPAddress primaryDNS(8, 8, 8, 8);
+IPAddress secondaryDNS(8, 8, 4, 4);
+
 curren_state current = OFF_STATE;
 
 
@@ -105,10 +115,10 @@ void onCommond(JSONVar obj) {
       motorStop();
       break;
     case FORWARD:
-      motorForward();
+      motorForward(val);
       break;
     case BACKWARD:
-      motorBackward();
+      motorBackward(val);
       break;
     case TURN:
       if (current == OFF_STATE) return;
@@ -140,14 +150,14 @@ void motorStop() {
 
 
 // 电机正转
-void motorForward() {
+void motorForward(int val) {
   if (current == OFF_STATE) return;
   myMotor.setSpeed(val);
   myMotor.forward();
 }
 
 // 电机反转
-void motorBackward() {
+void motorBackward(int val) {
   if (current == OFF_STATE) return;
   myMotor.setSpeed(val);
   myMotor.backward();
@@ -161,6 +171,9 @@ void initWebSocket() {
 
 // 初始化wifi
 void initWifi() {
+  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
+  //   Serial.println("STA Failed to configure");
+  // }
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   if (WiFi.waitForConnectResult() != WL_CONNECTED) {

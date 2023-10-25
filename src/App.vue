@@ -5,7 +5,7 @@
     <div class="left mb-24">
       <div>
         <div>
-          <span class="font-24-500 c-999 label">油门</span>
+          <span class="font-24-500 c-999 label">电机</span>
         </div>
         <div class="clear-both"></div>
       </div>
@@ -105,7 +105,7 @@
       </div>
       <div>
         <div>
-          <span class="font-24-500 c-999 label">转向</span>
+          <span class="font-24-500 c-999 label">舵机</span>
         </div>
         <div class="clear-both"></div>
       </div>
@@ -204,6 +204,12 @@ export default {
   },
   created() {
     this.initWebSocket();
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        // This hides the address bar:
+        window.scrollTo(0, 1);
+      }, 0);
+    });
   },
   mounted() {
     this.initChart();
