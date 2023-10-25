@@ -32,6 +32,14 @@ const char *ssid = "AOETECH";
 // wifi 密码
 const char *password = "67810550";
 
+
+enum cmd_code {
+  START,
+  STOP,
+  SPEED,
+  TURN,
+};
+
 // uint8_t to string
 String converter(uint8_t *str) {
   return String((char *)str);
@@ -57,23 +65,34 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   }
 }
 
+
+
+
+cmd_code hashit(String inString) {
+  if (inString == "START") return START;
+  if (inString == "STOP") return STOP;
+  if (inString == "SPEED") return SPEED;
+  if (inString == "TURN") return TURN;
+}
+
+
 // 处理远程命令
 void onCommond(JSONVar obj) {
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
   Serial.println(CMD);
   Serial.println(val);
-  switch (CMD) {
-    case "START":
+  switch (hashit(CMD)) {
+    case START:
       myMotor.forward();
       break;
-    case "STOT":
+    case STOP:
       myMotor.stop();
       break;
-    case "SPEED":
+    case SPEED:
       myMotor.setSpeed(val);
       break;
-    case "TURN":
+    case TURN:
       new_pos = val;
       break;
   }
@@ -119,12 +138,11 @@ void loop() {
   if (new_pos != last_pos) {
     if (last_pos > new_pos) {
       last_pos -= 1;
-      delay(15);
     }
     if (last_pos < new_pos) {
       last_pos += 1;
-      delay(15);
     }
   }
   myservo.write(last_pos);
+  delay(10);
 }

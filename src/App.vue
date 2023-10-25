@@ -72,7 +72,7 @@ export default {
     speed(val) {
       $delay(() => {
         let v = (val / 100).toFixed(2) * 255;
-        this.sendMsg('SPEED', v);
+        this.sendMsg('SPEED', parseInt(v));
       });
     },
     angles(val) {
@@ -85,7 +85,7 @@ export default {
         if (val < 50) {
           deg += diff;
         }
-        this.sendMsg('turn', deg);
+        this.sendMsg('TURN', deg);
       });
     },
   },
