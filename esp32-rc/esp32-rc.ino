@@ -20,6 +20,21 @@
 #define SERVO_PIN 25
 #define MOTOR_PIN 26
 
+
+enum curren_state {
+  ON_STATE,
+  OFF_STATE,
+};
+
+enum cmd_code {
+  ON,
+  OFF,
+  TURN,
+  STOP,
+  FORWARD,
+  BACKWARD
+};
+
 Servo myservo;
 L298N myMotor(MOTOR_PIN, M_IN_1, M_IN_2);
 int last_pos = 90;
@@ -31,14 +46,8 @@ AsyncWebSocket ws("/ws");
 const char *ssid = "AOETECH";
 // wifi 密码
 const char *password = "67810550";
+curren_state current = OFF_STATE;
 
-
-enum cmd_code {
-  START,
-  STOP,
-  SPEED,
-  TURN,
-};
 
 // uint8_t to string
 String converter(uint8_t *str) {
@@ -65,16 +74,14 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   }
 }
 
-
-
-
 cmd_code hashit(String inString) {
-  if (inString == "START") return START;
+  if (inString == "ON") return ON;
+  if (inString == "OFF") return OFF;
   if (inString == "STOP") return STOP;
-  if (inString == "SPEED") return SPEED;
   if (inString == "TURN") return TURN;
+  if (inString == "FORWARD") return FORWARD;
+  if (inString == "BACKWARD") return BACKWARD;
 }
-
 
 // 处理远程命令
 void onCommond(JSONVar obj) {
@@ -83,16 +90,30 @@ void onCommond(JSONVar obj) {
   Serial.println(CMD);
   Serial.println(val);
   switch (hashit(CMD)) {
-    case START:
-      myMotor.forward();
-      break;
-    case STOP:
+    case ON:
+      current = ON_STATE;
+      digitalWrite(LED, HIGH);
+    case OFF:
+      current = OFF_STATE;
+      digitalWrite(LED, LOW);
       myMotor.stop();
       break;
-    case SPEED:
+    case STOP:
+      if (current == OFF_STATE) return;
+      myMotor.stop();
+      break;
+    case FORWARD:
+      if (current == OFF_STATE) return;
       myMotor.setSpeed(val);
+      myMotor.forward();
+      break;
+    case BACKWARD:
+      if (current == OFF_STATE) return;
+      myMotor.setSpeed(val);
+      myMotor.backward();
       break;
     case TURN:
+      if (current == OFF_STATE) return;
       new_pos = val;
       break;
   }
@@ -126,15 +147,8 @@ void initPin() {
   myMotor.setSpeed(0);
 }
 
-void setup() {
-  Serial.begin(115200);
-  initPin();
-  initWifi();
-  initWebSocket();
-  server.begin();
-}
-
-void loop() {
+void turn() {
+  if (current == OFF_STATE) return;
   if (new_pos != last_pos) {
     if (last_pos > new_pos) {
       last_pos -= 1;
@@ -145,4 +159,16 @@ void loop() {
   }
   myservo.write(last_pos);
   delay(10);
+}
+
+void setup() {
+  Serial.begin(115200);
+  initPin();
+  initWifi();
+  initWebSocket();
+  server.begin();
+}
+
+void loop() {
+  turn();
 }

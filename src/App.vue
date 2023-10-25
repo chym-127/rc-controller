@@ -13,7 +13,13 @@
         <div class="font-24-500 c-999 mr-12 label" style="float: left">
           <span>加</span>
         </div>
-        <van-slider class="flex-1 w-0" v-model="speed" active-color="#1989fa" />
+        <van-slider
+          class="flex-1 w-0"
+          v-model="running"
+          @drag-end="dragRunningEnd"
+          inactive-color="#1989fa"
+          active-color="#1989fa"
+        />
         <div class="font-24-500 c-999 ml-12 label" style="float: right">
           <span>减</span>
         </div>
@@ -63,16 +69,24 @@ const $delay = (function () {
 export default {
   data() {
     return {
-      speed: 0,
+      running: 50,
       angles: 50,
       setup: false,
     };
   },
   watch: {
-    speed(val) {
+    running(val) {
       $delay(() => {
-        let v = (val / 100).toFixed(2) * 255;
-        this.sendMsg('SPEED', parseInt(v));
+        let cmd = 'STOP';
+        let v = ((Math.abs(50 - val) / 50) * 255).toFixed(0);
+        if (val > 50) {
+          cmd = 'FORWARD';
+        }
+        if (val < 50) {
+          cmd = 'BACKWARD';
+        }
+
+        this.sendMsg(cmd, v);
       });
     },
     angles(val) {
@@ -94,14 +108,19 @@ export default {
   },
   methods: {
     start() {
-      this.sendMsg('START');
+      this.sendMsg('ON');
     },
     stop() {
-      this.sendMsg('STOP');
+      this.sendMsg('OFF');
     },
     dragAnglesEnd() {
       if (this.angles !== 50) {
         this.angles = 50;
+      }
+    },
+    dragRunningEnd() {
+      if (this.running !== 50) {
+        this.running = 50;
       }
     },
     initWebSocket() {
@@ -125,6 +144,7 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
+      console.log(data);
       this.websocket.send(JSON.stringify(data));
     },
     onClose() {
