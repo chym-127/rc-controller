@@ -125,6 +125,7 @@ const $delay = (function () {
 export default {
   data() {
     return {
+      ip: '192.168.133.100',
       checked: false,
       running: 0,
       offset: 100,
@@ -372,8 +373,8 @@ export default {
       }
     },
     initWebSocket() {
-      const gateway = ` ws://192.168.2.157/ws`;
-      console.log('Trying to open a WebSocket connection…');
+      const gateway = ` ws://${this.ip}/ws`;
+      console.log('Trying to open a WebSocket connection…', gateway);
       this.websocket = new WebSocket(gateway);
       this.websocket.onopen = this.onOpen;
       this.websocket.onclose = this.onClose;

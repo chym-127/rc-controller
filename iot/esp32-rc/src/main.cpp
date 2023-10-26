@@ -35,6 +35,7 @@ Servo myservo;
 L298N myMotor(MOTOR_PIN, M_IN_1, M_IN_2);
 int last_pos = 90;
 int new_pos = 90;
+int led_state = 0;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -44,13 +45,16 @@ const char *ssid = "RC_C";
 // wifi 密码
 const char *password = "15827330290";
 // const char *password = "67810550";
+unsigned long previousMillis = 0;
+unsigned long interval = 10000;
+unsigned long previousMillisLed = 0;
+unsigned long intervalLed = 200; // 未连接wifi 200ms 闪烁 连接wifi未连接遥控 1500ms 闪烁 都连接 长亮
 
 // static ip
 IPAddress local_IP(192, 168, 133, 100);
 IPAddress gateway(192, 168, 133, 1);
-IPAddress subnet(255, 255, 0, 0);
-IPAddress primaryDNS(8, 8, 8, 8);
-IPAddress secondaryDNS(8, 8, 4, 4);
+IPAddress subnet(255, 255, 255, 0);
+IPAddress primaryDNS(192, 168, 133, 1);
 
 curren_state current = OFF_STATE;
 
@@ -82,15 +86,15 @@ void launchEngine()
 {
   Serial.println("launch engine");
   current = ON_STATE;
-  digitalWrite(LED, HIGH);
 }
 
 // 关闭引擎
 void closeEngine()
 {
+  if (current == OFF_STATE)
+    return;
   Serial.println("close engine");
   current = OFF_STATE;
-  digitalWrite(LED, LOW);
   myMotor.stop();
 }
 
@@ -162,11 +166,13 @@ void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType 
   switch (type)
   {
   case WS_EVT_CONNECT:
+    intervalLed = -1;
     Serial.printf("WebSocket client #%u connected from %s\n", client->id(), client->remoteIP().toString().c_str());
     break;
   case WS_EVT_DISCONNECT:
     Serial.printf("WebSocket client #%u disconnected\n", client->id());
     closeEngine();
+    intervalLed = 1500;
     break;
   case WS_EVT_DATA:
     myObject = JSON.parse(converter(data));
@@ -188,10 +194,12 @@ void initWebSocket()
 // 初始化wifi
 void initWifi()
 {
-  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS, secondaryDNS)) {
-  //   Serial.println("STA Failed to configure");
-  // }
-  WiFi.mode(WIFI_STA);
+  Serial.begin(115200);
+  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS))
+  {
+    Serial.println("STA Failed to configure");
+  }
+  // WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   if (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
@@ -200,6 +208,7 @@ void initWifi()
   }
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
+  intervalLed = 1500;
 }
 
 // 初始化引脚
@@ -232,10 +241,59 @@ void turn()
   delay(10);
 }
 
+void checkWifiState()
+{
+  unsigned long currentMillis = millis();
+  if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >= interval))
+  {
+    closeEngine();
+    Serial.println("Reconnecting to WiFi...");
+    WiFi.disconnect();
+    WiFi.reconnect();
+    if (WiFi.waitForConnectResult() == WL_CONNECTED)
+    {
+      intervalLed = 1500;
+      Serial.println("reconnect success");
+    }
+    else
+    {
+      intervalLed = 200;
+      Serial.println("reconnect failed");
+    }
+    previousMillis = currentMillis;
+  }
+}
+
+void checkLed()
+{
+  if (intervalLed == -1 && led_state == 0)
+  {
+    digitalWrite(LED, HIGH);
+    led_state = 1;
+    return;
+  }
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillisLed >= intervalLed)
+  {
+    if (led_state == 0)
+    {
+      digitalWrite(LED, HIGH);
+      led_state = 1;
+    }
+    else
+    {
+      digitalWrite(LED, LOW);
+      led_state = 0;
+    }
+    previousMillisLed = currentMillis;
+  }
+}
+
 void setup()
 {
-  Serial.begin(115200);
   initPin();
+  Serial.begin(115200);
   initWifi();
   initWebSocket();
   server.begin();
@@ -244,4 +302,6 @@ void setup()
 void loop()
 {
   turn();
+  checkWifiState();
+  checkLed();
 }
