@@ -36,6 +36,7 @@ L298N myMotor(MOTOR_PIN, M_IN_1, M_IN_2);
 int last_pos = 90;
 int new_pos = 90;
 int led_state = 0;
+bool reconning = false;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -247,20 +248,19 @@ void checkWifiState()
   if ((WiFi.status() != WL_CONNECTED) && (currentMillis - previousMillis >= interval))
   {
     closeEngine();
+    intervalLed = 200;
+    reconning = true;
     Serial.println("Reconnecting to WiFi...");
     WiFi.disconnect();
     WiFi.reconnect();
-    if (WiFi.waitForConnectResult() == WL_CONNECTED)
-    {
-      intervalLed = 1500;
-      Serial.println("reconnect success");
-    }
-    else
-    {
-      intervalLed = 200;
-      Serial.println("reconnect failed");
-    }
     previousMillis = currentMillis;
+  }
+
+  if (reconning && WiFi.status() == WL_CONNECTED)
+  {
+    intervalLed = 1500;
+    reconning = false;
+    Serial.println("reconnect success");
   }
 }
 

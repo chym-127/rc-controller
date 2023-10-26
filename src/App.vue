@@ -351,6 +351,7 @@ export default {
     },
     stop() {
       this.state = 2;
+      this.reset();
       this.sendMsg('OFF');
     },
     toggleGear() {
@@ -395,8 +396,17 @@ export default {
       console.log(data);
       this.websocket.send(JSON.stringify(data));
     },
+    reset() {
+      this.running = 0;
+      this.angles = 90;
+      this.fixedSpeed = false;
+    },
     onClose() {
       this.wsState = 3;
+      this.reset();
+      setTimeout(() => {
+        this.initWebSocket();
+      }, 1000);
     },
     onMessage() {
       console.log('onMessage');
