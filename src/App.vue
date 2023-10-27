@@ -48,6 +48,13 @@
               {{ fixedSpeed ? '开' : '关' }}
             </span>
           </div>
+
+          <div class="flex-1">
+            <span class="font-14-500 c-666">时长:&nbsp;&nbsp;</span>
+            <span class="font-14-500" :style="{ color: durationEn ? '#07c160' : '#969799' }">
+              {{ formatterSec(duration) }}
+            </span>
+          </div>
         </div>
         <div class="flex-1 flex flex-row mb-12 justify-between">
           <div id="chartDomSpeed" class="w-0 flex-1 h-full"></div>
@@ -116,14 +123,16 @@
 <script>
 import * as echarts from 'echarts';
 
-import { speedChartOption, angleChartOption } from './config';
+import { speedChartOption, angleChartOption, formatterSec } from './config';
 let speedChart = null;
 let angleChart = null;
-
 export default {
   data() {
     return {
       rotate: 0,
+      formatterSec: formatterSec,
+      duration: 0,
+      durationEn: false,
       ip: '192.168.133.100',
       checked: false,
       angles: 50,
@@ -133,7 +142,7 @@ export default {
       offset: 100,
       gear: 'FORWARD', // FORWARD 前进 BACKWARD 后退 3 停止
       state: 1, //1 启动 2 停止
-      wsState: 2, //1 连接中 2 已连接 3 断开连接
+      wsState: 1, //1 连接中 2 已连接 3 断开连接
       gearMapper: {
         FORWARD: {
           txt: '前进',
@@ -163,11 +172,12 @@ export default {
         },
       },
       setup: false,
-
       fixedSpeed: false,
     };
   },
   created() {
+    //ceshi
+    // this.onOpen()
     this.initWebSocket();
   },
   mounted() {
@@ -175,6 +185,11 @@ export default {
     setTimeout(() => {
       window.requestAnimationFrame(this.animation);
     }, 1500);
+    setInterval(() => {
+      if (this.durationEn) {
+        this.duration += 1;
+      }
+    }, 1000);
   },
   methods: {
     runningSend(val) {
@@ -232,8 +247,8 @@ export default {
         setInterval(() => {
           speedChartOption && speedChart.setOption(speedChartOption);
           angleChartOption && angleChart.setOption(angleChartOption);
-        }, 500);
-      }, 1500);
+        }, 300);
+      }, 1000);
     },
     start() {
       this.state = 1;
@@ -271,6 +286,7 @@ export default {
       this.websocket.onmessage = this.onMessage;
     },
     onOpen() {
+      this.durationEn = true;
       this.wsState = 2;
     },
     sendMsg(cmd, val = '') {
@@ -293,6 +309,7 @@ export default {
       this.fixedSpeed = false;
     },
     onClose() {
+      this.durationEn = false;
       this.wsState = 3;
       this.reset();
       setTimeout(() => {
