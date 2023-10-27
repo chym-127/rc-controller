@@ -1,7 +1,8 @@
 <template>
   <div class="slider-box" :id="uuid">
-    <div class="slider-bar">
+    <div class="slider-bar" :style="{ backgroundColor: unActiveColor }">
       <div class="slider"></div>
+      <div class="run-bar" :style="{ backgroundColor: activeColor }"></div>
     </div>
   </div>
 </template>
@@ -14,6 +15,14 @@ export default {
       type: Number,
       default: 0,
     },
+    unActiveColor: {
+      type: String,
+      default: '#ebedf0',
+    },
+    activeColor: {
+      type: String,
+      default: 'rgb(25, 137, 250)',
+    },
     backDefaultPos: {
       type: Boolean,
       default: false,
@@ -23,6 +32,7 @@ export default {
     return {
       uuid: uuidv4(),
       el: null,
+      runBarEl: null,
       pos: 0,
       current: 0,
       start: 0,
@@ -38,6 +48,7 @@ export default {
   methods: {
     animation() {
       this.el.style.left = this.current + '%';
+      this.runBarEl.style.width = this.current + '%';
       this.$emit('onMove', this.current);
       window.requestAnimationFrame(this.animation);
     },
@@ -46,7 +57,9 @@ export default {
       this.current = this.defaultPos;
 
       this.el = document.getElementById(this.uuid).getElementsByClassName('slider')[0];
+      this.runBarEl = document.getElementById(this.uuid).getElementsByClassName('run-bar')[0];
       this.el.style.left = this.current + '%';
+      this.runBarEl.style.width = this.current + '%';
       const { maxY, minY } = this.getTouchRange();
       const parentNodeW = this.el.parentNode.clientWidth;
 
@@ -84,16 +97,11 @@ export default {
         }
       });
       this.el.addEventListener('touchend', (event) => {
-        for (let index = 0; index < event.changedTouches.length; index++) {
-          const touch = event.changedTouches[index];
-          if (touch.clientY > minY && touch.clientY < maxY) {
-            if (this.backDefaultPos) {
-              this.pos = this.defaultPos;
-              this.current = this.defaultPos;
-              this.el.style.left = this.current + '%';
-              this.$emit('onMove', this.pos);
-            }
-          }
+        if (this.backDefaultPos) {
+          this.pos = this.defaultPos;
+          this.current = this.defaultPos;
+          this.el.style.left = this.current + '%';
+          this.$emit('onMove', this.pos);
         }
       });
     },
@@ -119,8 +127,13 @@ export default {
 .slider-bar {
   width: 100%;
   height: 2px;
-  background: rgb(25, 137, 250);
   position: relative;
+  border-radius: 12px;
+}
+.run-bar {
+  width: 0%;
+  height: 2px;
+  transition: width 0.3s;
   border-radius: 12px;
 }
 .slider {

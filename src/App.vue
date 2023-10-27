@@ -95,7 +95,12 @@
           <span>左</span>
         </div>
         <div style="position: relative" class="flex-1 w-0">
-          <Slider :default-pos="50" :back-default-pos="true" @onMove="anglesChange"></Slider>
+          <Slider
+            :default-pos="50"
+            :back-default-pos="true"
+            unActiveColor="rgb(25, 137, 250)"
+            @onMove="anglesChange"
+          ></Slider>
         </div>
 
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
