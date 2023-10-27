@@ -13,13 +13,10 @@
         <div class="font-24-500 c-999 mr-40 label" style="float: left">
           <span>减</span>
         </div>
-        <van-slider
-          class="flex-1 w-0"
-          :disabled="wsState != 2"
-          v-model="running"
-          @drag-end="dragRunningEnd"
-          active-color="#1989fa"
-        />
+        <div style="position: relative" class="flex-1 w-0">
+          <van-slider :disabled="wsState != 2" v-model="running" active-color="#1989fa" />
+          <div class="hold-box"></div>
+        </div>
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
           <span>加</span>
         </div>
@@ -98,14 +95,11 @@
         <div class="font-24-500 c-999 mr-40 label" style="float: left">
           <span>左</span>
         </div>
-        <van-slider
-          :disabled="wsState != 2"
-          class="flex-1 w-0"
-          v-model="angles"
-          @drag-end="dragAnglesEnd"
-          inactive-color="#1989fa"
-          active-color="#1989fa"
-        />
+        <div style="position: relative" class="flex-1 w-0">
+          <van-slider :disabled="wsState != 2" v-model="angles" inactive-color="#1989fa" active-color="#1989fa" />
+          <div class="hold-box"></div>
+        </div>
+
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
           <span>右</span>
         </div>
@@ -173,6 +167,22 @@ export default {
       },
       setup: false,
       fixedSpeed: false,
+      domTop: {
+        el: null,
+        pos: 0,
+        current: 0,
+        start: 0,
+        move: 0,
+        direction: 0,
+      },
+      domBottom: {
+        el: null,
+        pos: 50,
+        current: 50,
+        start: 0,
+        move: 0,
+        direction: 0,
+      },
     };
   },
   created() {
@@ -190,8 +200,97 @@ export default {
         this.duration += 1;
       }
     }, 1000);
+    this.initHoldBox();
   },
   methods: {
+    initHoldBox() {
+      let middle = parseInt(screen.height / 2);
+      let doms = document.getElementsByClassName('hold-box');
+      this.domTop.el = doms[0];
+      this.domTop.el.style.left = this.domTop.current + '%';
+      this.domBottom.el = doms[1];
+      this.domBottom.el.style.left = this.domBottom.current + '%';
+
+      for (let index = 0; index < doms.length; index++) {
+        const element = doms[index];
+        const parentNode = element.parentNode;
+        const parentNodeW = parentNode.clientWidth;
+        element.addEventListener('touchstart', (event) => {
+          if (event.targetTouches && event.targetTouches.length) {
+            for (let index = 0; index < event.targetTouches.length; index++) {
+              const touch = event.targetTouches[index];
+              if (touch.clientY > middle) {
+                this.domBottom.start = touch.clientX;
+              } else {
+                this.domTop.start = touch.clientX;
+              }
+            }
+          }
+        });
+        element.addEventListener('touchend', (event) => {
+          if (event.changedTouches && event.changedTouches.length) {
+            for (let index = 0; index < event.changedTouches.length; index++) {
+              const touch = event.changedTouches[index];
+              if (touch.clientY > middle) {
+                this.domBottom.pos = 50;
+                this.domBottom.current = 50;
+                this.angles = 50;
+                this.domBottom.el.style.left = this.domBottom.current + '%';
+              } else {
+                this.running = 0;
+                this.domTop.pos = 0;
+                this.domTop.current = 0;
+                this.domTop.el.style.left = this.domTop.current + '%';
+              }
+            }
+          }
+        });
+        element.addEventListener('touchmove', (event) => {
+          if (event.targetTouches && event.targetTouches.length) {
+            for (let index = 0; index < event.targetTouches.length; index++) {
+              const touch = event.targetTouches[index];
+              if (touch.clientY > middle) {
+                this.domBottom.move = Math.abs(touch.clientX - this.domBottom.start).toFixed(0);
+                if (touch.clientX - this.domBottom.start > 0) {
+                  this.domBottom.direction = 1;
+                }
+                if (touch.clientX - this.domBottom.start < 0) {
+                  this.domBottom.direction = -1;
+                }
+                this.domBottom.current =
+                  (Number(this.domBottom.move) / parentNodeW) * 100 * this.domBottom.direction + this.domBottom.pos;
+                if (this.domBottom.current <= 0) {
+                  this.domBottom.current = 0;
+                }
+                if (this.domBottom.current >= 100) {
+                  this.domBottom.current = 100;
+                }
+                this.angles = this.domBottom.current;
+                this.domBottom.el.style.left = this.domBottom.current + '%';
+              } else {
+                this.domTop.move = Math.abs(touch.clientX - this.domTop.start).toFixed(0);
+                if (touch.clientX - this.domTop.start > 0) {
+                  this.domTop.direction = 1;
+                }
+                if (touch.clientX - this.domTop.start < 0) {
+                  this.domTop.direction = -1;
+                }
+                this.domTop.current =
+                  (Number(this.domTop.move) / parentNodeW) * 100 * this.domTop.direction + this.domTop.pos;
+                if (this.domTop.current <= 0) {
+                  this.domTop.current = 0;
+                }
+                if (this.domTop.current >= 100) {
+                  this.domTop.current = 100;
+                }
+                this.running = this.domTop.current;
+                this.domTop.el.style.left = this.domTop.current + '%';
+              }
+            }
+          }
+        });
+      }
+    },
     runningSend(val) {
       let v = ((val / 100) * (255 - this.offset)).toFixed(0);
       let speed = parseInt(v) + this.offset;
@@ -268,16 +367,16 @@ export default {
         this.running = 0;
       }
     },
-    dragAnglesEnd() {
-      if (this.angles !== 50) {
-        this.angles = 50;
-      }
-    },
-    dragRunningEnd() {
-      if (this.running !== 0 && !this.fixedSpeed) {
-        this.running = 0;
-      }
-    },
+    // dragAnglesEnd() {
+    //   if (this.angles !== 50) {
+    //     this.angles = 50;
+    //   }
+    // },
+    // dragRunningEnd() {
+    //   if (this.running !== 0 && !this.fixedSpeed) {
+    //     this.running = 0;
+    //   }
+    // },
     initWebSocket() {
       const gateway = ` ws://${this.ip}/ws`;
       this.websocket = new WebSocket(gateway);
@@ -356,28 +455,6 @@ export default {
   transform: rotate(270deg);
 }
 
-@media screen and (orientation: portrait) {
-  /*要横屏显示的内容的外层盒子*/
-  .box {
-    /* 设置基准点为左上角 */
-    transform-origin: top left;
-    /* 以左上角为基准点，顺时针旋转90度 然后沿Y轴反方向平移100% */
-    /* 为什么沿Y轴，因为旋转使坐标轴方向发生了变化 */
-    transform: rotate(90deg) translateY(-100%);
-    /*设置元素的宽度为 100%父元素的高度 并提高样式优先级 */
-    width: 100vh !important;
-    /*设置元素的宽度为 100%父元素的宽度  并提高样式优先级 */
-    height: 100vw !important;
-  }
-}
-
-.box {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  border: 1px solid rebeccapurple;
-}
-
 .h-200 {
   height: 200px;
 }
@@ -386,41 +463,13 @@ export default {
   width: 200px;
 }
 
-.line {
-  transition: all 0.4s;
-}
-
-.gauge-box {
-  width: 200px;
-  height: 200px;
-  border: 1px solid red;
-}
-
-.gauge-box .scale {
-  width: 100%;
-  height: 100%;
-  border: 10px solid #5470c6;
-  border-radius: 50%;
-  position: relative;
-}
-
-.gauge-box .scale .mask {
-  width: 120px;
-  height: 35px;
-  background-color: #fff;
-  transform: rotate(0deg) translateX(30px) translateY(155px);
-  /* border: 1px solid black; */
-}
-/* // 315 225 */
-.gauge-box .scale .anchor {
+.hold-box {
+  /* border: 1px solid red; */
   position: absolute;
-  top: 88px;
-  left: 20px;
-  width: 70px;
-  height: 4px;
-  transform-origin: 100% 50%;
-  transform: rotate(-45deg);
-  transition: transform 0.3s;
-  background-color: black;
+  width: 25px;
+  height: 25px;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
 }
 </style>
