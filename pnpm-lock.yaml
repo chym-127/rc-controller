@@ -11,6 +11,9 @@ dependencies:
   echarts:
     specifier: ^5.4.3
     version: 5.4.3
+  uuid:
+    specifier: ^9.0.1
+    version: 9.0.1
   vant:
     specifier: '4'
     version: 4.7.2(vue@3.3.6)
@@ -526,6 +529,11 @@ packages:
       escalade: 3.1.1
       picocolors: 1.0.0
     dev: true
+
+  /uuid@9.0.1:
+    resolution: {integrity: sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==}
+    hasBin: true
+    dev: false
 
   /vant@4.7.2(vue@3.3.6):
     resolution: {integrity: sha512-rRVyEA8HwDKaHDLnT8x9pHv2bYfziKO76yH13Us2aUMEhx5AM/rNDJIMz0mn4G4pTKRR/UTkuqk3kVFf1Mn0wA==}

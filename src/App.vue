@@ -14,8 +14,7 @@
           <span>减</span>
         </div>
         <div style="position: relative" class="flex-1 w-0">
-          <van-slider :disabled="wsState != 2" v-model="running" active-color="#1989fa" />
-          <div class="hold-box"></div>
+          <Slider :default-pos="0" :back-default-pos="!fixedSpeed" @onMove="runningChange"></Slider>
         </div>
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
           <span>加</span>
@@ -96,8 +95,7 @@
           <span>左</span>
         </div>
         <div style="position: relative" class="flex-1 w-0">
-          <van-slider :disabled="wsState != 2" v-model="angles" inactive-color="#1989fa" active-color="#1989fa" />
-          <div class="hold-box"></div>
+          <Slider :default-pos="50" :back-default-pos="true" @onMove="anglesChange"></Slider>
         </div>
 
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
@@ -116,11 +114,12 @@
 
 <script>
 import * as echarts from 'echarts';
-
+import Slider from './components/Slider.vue';
 import { speedChartOption, angleChartOption, formatterSec } from './config';
 let speedChart = null;
 let angleChart = null;
 export default {
+  components: { Slider },
   data() {
     return {
       rotate: 0,
@@ -200,102 +199,19 @@ export default {
         this.duration += 1;
       }
     }, 1000);
-    this.initHoldBox();
+    // this.initHoldBox();
   },
   methods: {
-    initHoldBox() {
-      let middle = parseInt(screen.height / 2);
-      let doms = document.getElementsByClassName('hold-box');
-      this.domTop.el = doms[0];
-      this.domTop.el.style.left = this.domTop.current + '%';
-      this.domBottom.el = doms[1];
-      this.domBottom.el.style.left = this.domBottom.current + '%';
-
-      for (let index = 0; index < doms.length; index++) {
-        const element = doms[index];
-        const parentNode = element.parentNode;
-        const parentNodeW = parentNode.clientWidth;
-        element.addEventListener('touchstart', (event) => {
-          if (event.targetTouches && event.targetTouches.length) {
-            for (let index = 0; index < event.targetTouches.length; index++) {
-              const touch = event.targetTouches[index];
-              if (touch.clientY > middle) {
-                this.domBottom.start = touch.clientX;
-              } else {
-                this.domTop.start = touch.clientX;
-              }
-            }
-          }
-        });
-        element.addEventListener('touchend', (event) => {
-          if (event.changedTouches && event.changedTouches.length) {
-            for (let index = 0; index < event.changedTouches.length; index++) {
-              const touch = event.changedTouches[index];
-              if (touch.clientY > middle) {
-                this.domBottom.pos = 50;
-                this.domBottom.current = 50;
-                this.angles = 50;
-                this.domBottom.el.style.left = this.domBottom.current + '%';
-              } else {
-                this.running = 0;
-                this.domTop.pos = 0;
-                this.domTop.current = 0;
-                this.domTop.el.style.left = this.domTop.current + '%';
-              }
-            }
-          }
-        });
-        element.addEventListener('touchmove', (event) => {
-          if (event.targetTouches && event.targetTouches.length) {
-            for (let index = 0; index < event.targetTouches.length; index++) {
-              const touch = event.targetTouches[index];
-              if (touch.clientY > middle) {
-                this.domBottom.move = Math.abs(touch.clientX - this.domBottom.start).toFixed(0);
-                if (touch.clientX - this.domBottom.start > 0) {
-                  this.domBottom.direction = 1;
-                }
-                if (touch.clientX - this.domBottom.start < 0) {
-                  this.domBottom.direction = -1;
-                }
-                this.domBottom.current =
-                  (Number(this.domBottom.move) / parentNodeW) * 100 * this.domBottom.direction + this.domBottom.pos;
-                if (this.domBottom.current <= 0) {
-                  this.domBottom.current = 0;
-                }
-                if (this.domBottom.current >= 100) {
-                  this.domBottom.current = 100;
-                }
-                this.angles = this.domBottom.current;
-                this.domBottom.el.style.left = this.domBottom.current + '%';
-              } else {
-                this.domTop.move = Math.abs(touch.clientX - this.domTop.start).toFixed(0);
-                if (touch.clientX - this.domTop.start > 0) {
-                  this.domTop.direction = 1;
-                }
-                if (touch.clientX - this.domTop.start < 0) {
-                  this.domTop.direction = -1;
-                }
-                this.domTop.current =
-                  (Number(this.domTop.move) / parentNodeW) * 100 * this.domTop.direction + this.domTop.pos;
-                if (this.domTop.current <= 0) {
-                  this.domTop.current = 0;
-                }
-                if (this.domTop.current >= 100) {
-                  this.domTop.current = 100;
-                }
-                this.running = this.domTop.current;
-                this.domTop.el.style.left = this.domTop.current + '%';
-              }
-            }
-          }
-        });
-      }
+    anglesChange(val) {
+      this.angles = val;
+    },
+    runningChange(val) {
+      this.running = val;
     },
     runningSend(val) {
       let v = ((val / 100) * (255 - this.offset)).toFixed(0);
       let speed = parseInt(v) + this.offset;
       let chartData = parseInt(((v / (255 - this.offset)) * 100).toFixed(0));
-      let pre = speedChartOption.series[0].data[0].value;
       speedChartOption.series[0].data = [
         {
           value: speed === this.offset ? 0 : chartData,
@@ -363,20 +279,7 @@ export default {
     },
     toggleFixedSpeed() {
       this.fixedSpeed = !this.fixedSpeed;
-      if (!this.fixedSpeed) {
-        this.running = 0;
-      }
     },
-    // dragAnglesEnd() {
-    //   if (this.angles !== 50) {
-    //     this.angles = 50;
-    //   }
-    // },
-    // dragRunningEnd() {
-    //   if (this.running !== 0 && !this.fixedSpeed) {
-    //     this.running = 0;
-    //   }
-    // },
     initWebSocket() {
       const gateway = ` ws://${this.ip}/ws`;
       this.websocket = new WebSocket(gateway);
