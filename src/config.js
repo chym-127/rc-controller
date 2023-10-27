@@ -97,6 +97,8 @@ const angleChartOption = {
     animationEasing: 'quadraticOut',
     series: [
         {
+            startAngle: 160,
+            endAngle: 20,
             type: 'gauge',
             axisLine: {
                 lineStyle: {
@@ -127,8 +129,8 @@ const angleChartOption = {
                 },
             },
             min: 0,
-            max: 180,
-            splitNumber: 6,
+            max: 90,
+            splitNumber: 3,
             title: {
                 show: false,
             },
@@ -136,10 +138,13 @@ const angleChartOption = {
                 valueAnimation: true,
                 fontSize: 24,
                 offsetCenter: [0, '70%'],
+                formatter: function (value) {
+                    return value === 45 ? '直行' : value > 45 ? '右' : '左';
+                },
             },
             data: [
                 {
-                    value: 90,
+                    value: 45,
                 },
             ],
         },
@@ -182,8 +187,6 @@ const formatterSec = (seconds, format = 'HHMMSS') => {
         m = 0;
         h++;
     }
-
-    console.log(h, m, s);
     if (hasHour) {
         if (h < 10) {
             h = "0" + h

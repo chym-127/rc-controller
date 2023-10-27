@@ -10,7 +10,7 @@
         <div class="clear-both"></div>
       </div>
       <div class="flex flex-row jusity-center items-center">
-        <div class="font-24-500 c-999 mr-12 label" style="float: left">
+        <div class="font-24-500 c-999 mr-40 label" style="float: left">
           <span>减</span>
         </div>
         <van-slider
@@ -20,7 +20,7 @@
           @drag-end="dragRunningEnd"
           active-color="#1989fa"
         />
-        <div class="font-24-500 c-999 ml-12 label" style="float: right">
+        <div class="font-24-500 c-999 ml-40 label" style="float: right">
           <span>加</span>
         </div>
       </div>
@@ -95,7 +95,7 @@
     </div>
     <div class="right mt-24">
       <div class="flex flex-row jusity-center items-center">
-        <div class="font-24-500 c-999 mr-12 label" style="float: left">
+        <div class="font-24-500 c-999 mr-40 label" style="float: left">
           <span>左</span>
         </div>
         <van-slider
@@ -106,7 +106,7 @@
           inactive-color="#1989fa"
           active-color="#1989fa"
         />
-        <div class="font-24-500 c-999 ml-12 label" style="float: right">
+        <div class="font-24-500 c-999 ml-40 label" style="float: right">
           <span>右</span>
         </div>
       </div>
@@ -177,7 +177,7 @@ export default {
   },
   created() {
     //ceshi
-    // this.onOpen()
+    this.onOpen();
     this.initWebSocket();
   },
   mounted() {
@@ -206,7 +206,7 @@ export default {
     },
     anglesSend(val) {
       let deg = 90;
-      let diff = parseInt((Math.abs(50 - val) / 0.55555555).toFixed(0));
+      let diff = parseInt((Math.abs(50 - val) / (100 / 90)).toFixed(0));
       if (val > 50) {
         deg += diff;
       }
@@ -215,7 +215,7 @@ export default {
       }
       angleChartOption.series[0].data = [
         {
-          value: deg,
+          value: deg - 45,
         },
       ];
 
