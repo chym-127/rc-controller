@@ -1,6 +1,6 @@
 const speedChartOption = {
     animationDuration: 1000,
-    animationDurationUpdate: 80,
+    animationDurationUpdate: 500,
     animationEasing: 'quadraticOut',
     series: [
         {
@@ -38,8 +38,8 @@ const speedChartOption = {
                 },
             },
             min: 0,
-            max: 120,
-            splitNumber: 6,
+            max: 100,
+            splitNumber: 5,
             title: {
                 show: false,
             },
@@ -59,7 +59,7 @@ const speedChartOption = {
 
 const angleChartOption = {
     animationDuration: 1000,
-    animationDurationUpdate: 80,
+    animationDurationUpdate: 500,
     animationEasing: 'quadraticOut',
     series: [
         {
