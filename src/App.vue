@@ -14,8 +14,8 @@
           <span>减</span>
         </div>
         <van-slider
-          :disabled="wsState != 2"
           class="flex-1 w-0"
+          :disabled="wsState != 2"
           v-model="running"
           @drag-end="dragRunningEnd"
           active-color="#1989fa"
@@ -92,8 +92,8 @@
           <span>左</span>
         </div>
         <van-slider
-          class="flex-1 w-0"
           :disabled="wsState != 2"
+          class="flex-1 w-0"
           v-model="angles"
           @drag-end="dragAnglesEnd"
           inactive-color="#1989fa"
@@ -115,19 +115,19 @@
 
 <script>
 import * as echarts from 'echarts';
-const $delay = (function () {
-  let timer = 0;
-  return function (callback, ms) {
-    clearTimeout(timer);
-    timer = setTimeout(callback, ms);
-  };
-})();
+import { speedChartOption, angleChartOption } from './config';
+let speedChart = null;
+let angleChart = null;
 export default {
   data() {
     return {
+      rotate: 0,
       ip: '192.168.133.100',
       checked: false,
+      angles: 50,
+      preAngles: -1,
       running: 0,
+      preRunning: -1,
       offset: 100,
       gear: 'FORWARD', // FORWARD 前进 BACKWARD 后退 3 停止
       state: 1, //1 启动 2 停止
@@ -160,190 +160,71 @@ export default {
           color: '#ee0a24',
         },
       },
-      angles: 50,
       setup: false,
-      speedChart: null,
-      speedChartOption: null,
-      angleChartOption: null,
-      angleChart: null,
+
       fixedSpeed: false,
     };
   },
-  watch: {
-    running(val) {
-      $delay(() => {
-        let v = ((val / 100) * (255 - this.offset)).toFixed(0);
-        let speed = parseInt(v) + this.offset;
-        let chartData = parseInt(((speed / 255) * 100).toFixed(0));
-
-        this.speedChartOption.series[0].data = [
-          {
-            value: speed === this.offset ? 0 : chartData,
-          },
-        ];
-        this.sendMsg(speed === this.offset ? 'STOP' : this.gear, speed);
-      });
-    },
-    angles(val) {
-      $delay(() => {
-        let deg = 90;
-        let diff = parseInt((Math.abs(50 - val) / 0.55555555).toFixed(0));
-        if (val > 50) {
-          deg += diff;
-        }
-        if (val < 50) {
-          deg -= diff;
-        }
-        this.angleChartOption.series[0].data = [
-          {
-            value: deg,
-          },
-        ];
-        this.sendMsg('TURN', deg);
-      });
-    },
-  },
   created() {
     this.initWebSocket();
-    window.addEventListener('load', function () {
-      setTimeout(function () {
-        // This hides the address bar:
-        window.scrollTo(0, 1);
-      }, 0);
-    });
   },
   mounted() {
     this.initChart();
+    setTimeout(() => {
+      window.requestAnimationFrame(this.animation);
+    }, 1500);
   },
   methods: {
+    runningSend(val) {
+      let v = ((val / 100) * (255 - this.offset)).toFixed(0);
+      let speed = parseInt(v) + this.offset;
+      let chartData = parseInt(((speed / 255) * 100).toFixed(0));
+      speedChartOption.series[0].data = [
+        {
+          value: speed === this.offset ? 0 : chartData,
+        },
+      ];
+      this.sendMsg(speed === this.offset ? 'STOP' : this.gear, speed);
+    },
+    anglesSend(val) {
+      let deg = 90;
+      let diff = parseInt((Math.abs(50 - val) / 0.55555555).toFixed(0));
+      if (val > 50) {
+        deg += diff;
+      }
+      if (val < 50) {
+        deg -= diff;
+      }
+      angleChartOption.series[0].data = [
+        {
+          value: deg,
+        },
+      ];
+      this.rotate = deg;
+      this.sendMsg('TURN', deg);
+    },
+    animation() {
+      if (this.wsState === 2) {
+        if (this.preRunning !== this.running) {
+          this.runningSend(this.running);
+          speedChart.setOption(speedChartOption, true);
+          this.preRunning = this.running;
+        }
+        if (this.preAngles !== this.angles) {
+          this.anglesSend(this.angles);
+          angleChart.setOption(angleChartOption, true);
+          this.preAngles = this.angles;
+        }
+      }
+      window.requestAnimationFrame(this.animation);
+    },
     initChart() {
       let chartDom = document.getElementById('chartDomSpeed');
       let chartDomAngle = document.getElementById('chartDomAngle');
-
-      this.speedChart = echarts.init(chartDom);
-      this.angleChart = echarts.init(chartDomAngle);
-
-      this.speedChartOption = {
-        series: [
-          {
-            type: 'gauge',
-            progress: {
-              show: true,
-              width: 4,
-            },
-            axisLine: {
-              lineStyle: {
-                width: 4,
-              },
-            },
-            axisTick: {
-              show: false,
-            },
-            splitLine: {
-              length: 4,
-              lineStyle: {
-                width: 2,
-                color: '#999',
-              },
-            },
-            axisLabel: {
-              distance: 14,
-              color: '#999',
-              fontSize: 14,
-            },
-            anchor: {
-              show: true,
-              showAbove: true,
-              size: 12,
-              itemStyle: {
-                borderWidth: 8,
-              },
-            },
-            min: 0,
-            max: 120,
-            splitNumber: 6,
-            title: {
-              show: false,
-            },
-            detail: {
-              valueAnimation: true,
-              fontSize: 24,
-              offsetCenter: [0, '70%'],
-            },
-            data: [
-              {
-                value: 0,
-              },
-            ],
-          },
-        ],
-      };
-
-      this.angleChartOption = {
-        series: [
-          {
-            type: 'gauge',
-            // progress: {
-            //   show: true,
-            //   width: 4,
-            // },
-            axisLine: {
-              lineStyle: {
-                width: 4,
-              },
-            },
-            axisTick: {
-              show: false,
-            },
-            splitLine: {
-              length: 4,
-              lineStyle: {
-                width: 2,
-                color: '#999',
-              },
-            },
-            axisLabel: {
-              distance: 14,
-              color: '#999',
-              fontSize: 14,
-            },
-            anchor: {
-              show: true,
-              showAbove: true,
-              size: 12,
-              itemStyle: {
-                borderWidth: 8,
-              },
-            },
-            min: 0,
-            max: 180,
-            splitNumber: 6,
-            title: {
-              show: false,
-            },
-            detail: {
-              valueAnimation: true,
-              fontSize: 24,
-              offsetCenter: [0, '70%'],
-            },
-            data: [
-              {
-                value: 90,
-              },
-            ],
-          },
-        ],
-      };
-
-      this.speedChartOption && this.speedChart.setOption(this.speedChartOption);
-      this.angleChartOption && this.angleChart.setOption(this.angleChartOption);
-
-      setTimeout(() => {
-        setInterval(() => {
-          this.speedChart.setOption(this.speedChartOption, true);
-          this.angleChart.setOption(this.angleChartOption, true);
-        }, 400);
-      }, 1000);
+      speedChart = echarts.init(chartDom);
+      angleChart = echarts.init(chartDomAngle);
+      speedChartOption && speedChart.setOption(speedChartOption);
+      angleChartOption && angleChart.setOption(angleChartOption);
     },
     start() {
       this.state = 1;
@@ -375,7 +256,6 @@ export default {
     },
     initWebSocket() {
       const gateway = ` ws://${this.ip}/ws`;
-      console.log('Trying to open a WebSocket connection…', gateway);
       this.websocket = new WebSocket(gateway);
       this.websocket.onopen = this.onOpen;
       this.websocket.onclose = this.onClose;
@@ -398,7 +278,7 @@ export default {
     },
     reset() {
       this.running = 0;
-      this.angles = 90;
+      this.angles = 50;
       this.fixedSpeed = false;
     },
     onClose() {
@@ -476,5 +356,9 @@ export default {
 
 .w-200 {
   width: 200px;
+}
+
+.line {
+  transition: all 0.4s;
 }
 </style>
