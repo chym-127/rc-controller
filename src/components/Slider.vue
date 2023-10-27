@@ -38,7 +38,7 @@ export default {
       start: 0,
       move: 0,
       direction: 0,
-      offset: 50,
+      offset: 100,
     };
   },
   mounted() {
@@ -61,6 +61,7 @@ export default {
       this.el.style.left = this.current + '%';
       this.runBarEl.style.width = this.current + '%';
       const { maxY, minY } = this.getTouchRange();
+      console.log(maxY, minY);
       const parentNodeW = this.el.parentNode.clientWidth;
 
       this.el.addEventListener('touchstart', (event) => {
@@ -133,7 +134,7 @@ export default {
 .run-bar {
   width: 0%;
   height: 2px;
-  transition: width 0.3s;
+  transition: width 0.15s;
   border-radius: 12px;
 }
 .slider {
@@ -142,7 +143,7 @@ export default {
   border-radius: 10px;
   width: 25px;
   height: 25px;
-  transition: left 0.3s;
+  transition: left 0.15s;
   top: 50%;
   left: 50%;
   transform: translateX(-50%) translateY(-50%);
