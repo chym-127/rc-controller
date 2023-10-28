@@ -52,10 +52,10 @@ unsigned long previousMillisLed = 0;
 unsigned long intervalLed = 200; // 未连接wifi 200ms 闪烁 连接wifi未连接遥控 1500ms 闪烁 都连接 长亮
 
 // static ip
-IPAddress local_IP(192, 168, 133, 100);
-IPAddress gateway(192, 168, 133, 1);
-IPAddress subnet(255, 255, 255, 0);
-IPAddress primaryDNS(192, 168, 133, 1);
+// IPAddress local_IP(192, 168, 133, 100);
+// IPAddress gateway(192, 168, 133, 1);
+// IPAddress subnet(255, 255, 255, 0);
+// IPAddress primaryDNS(192, 168, 133, 1);
 
 curren_state current = OFF_STATE;
 
@@ -196,11 +196,11 @@ void initWebSocket()
 void initWifi()
 {
   Serial.begin(115200);
-  if (!WiFi.config(local_IP, gateway, subnet, primaryDNS))
-  {
-    Serial.println("STA Failed to configure");
-  }
-  // WiFi.mode(WIFI_STA);
+  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS))
+  // {
+  //   Serial.println("STA Failed to configure");
+  // }
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   if (WiFi.waitForConnectResult() != WL_CONNECTED)
   {
@@ -260,6 +260,7 @@ void checkWifiState()
   {
     intervalLed = 1500;
     reconning = false;
+    Serial.println(WiFi.localIP());
     Serial.println("reconnect success");
   }
 }

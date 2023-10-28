@@ -61,7 +61,6 @@ export default {
       this.el.style.left = this.current + '%';
       this.runBarEl.style.width = this.current + '%';
       const { maxY, minY } = this.getTouchRange();
-      console.log(maxY, minY);
       const parentNodeW = this.el.parentNode.clientWidth;
 
       this.el.addEventListener('touchstart', (event) => {
@@ -102,7 +101,7 @@ export default {
           this.pos = this.defaultPos;
           this.current = this.defaultPos;
           this.el.style.left = this.current + '%';
-          this.$emit('onMove', this.pos);
+          this.$emit('onBack', this.pos);
         }
       });
     },

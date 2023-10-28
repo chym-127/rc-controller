@@ -65,25 +65,13 @@
             <span>切换档位</span>
           </van-button>
           <div class="w-20"></div>
-          <van-button
-            icon="pause-circle-o"
-            :disabled="wsState != 2 || state == 2"
-            plain
-            type="primary"
-            class="w-90"
-            @click="stop"
-          >
+          <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
+            @click="stop">
             <span>停止</span>
           </van-button>
           <div class="w-20"></div>
-          <van-button
-            icon="replay"
-            :disabled="wsState != 2 || state == 1"
-            plain
-            type="primary"
-            class="w-90"
-            @click="start"
-          >
+          <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90"
+            @click="start">
             <span>启动</span>
           </van-button>
         </div>
@@ -95,12 +83,9 @@
           <span>左</span>
         </div>
         <div style="position: relative" class="flex-1 w-0">
-          <Slider
-            :default-pos="50"
-            :back-default-pos="true"
-            unActiveColor="rgb(25, 137, 250)"
-            @onMove="anglesChange"
-          ></Slider>
+          <Slider :default-pos="50" :back-default-pos="true" unActiveColor="rgb(25, 137, 250)" @onBack="anglesOnBack"
+            @onMove="anglesChange">
+          </Slider>
         </div>
 
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
@@ -133,7 +118,7 @@ export default {
       durationEn: false,
       ip: '192.168.133.100',
       checked: false,
-      angles: 50,
+      angles: 30,
       preAngles: -1,
       running: 0,
       preRunning: -1,
@@ -191,7 +176,7 @@ export default {
   },
   created() {
     //ceshi
-    this.onOpen();
+    // this.onOpen();
     this.initWebSocket();
   },
   mounted() {
@@ -207,6 +192,14 @@ export default {
     // this.initHoldBox();
   },
   methods: {
+    anglesOnBack() {
+      setTimeout(() => {
+        this.sendMsg('TURN', 90 + 20);
+        setTimeout(() => {
+          this.sendMsg('TURN', 90);
+        }, 60);
+      }, 60);
+    },
     anglesChange(val) {
       this.angles = val;
     },
@@ -226,16 +219,16 @@ export default {
     },
     anglesSend(val) {
       let deg = 90;
-      let diff = parseInt((Math.abs(50 - val) / (100 / 90)).toFixed(0));
+      let diff = parseInt((Math.abs(50 - val) / (100 / 60)).toFixed(0));
       if (val > 50) {
-        deg += diff;
+        deg -= diff;
       }
       if (val < 50) {
-        deg -= diff;
+        deg += diff;
       }
       angleChartOption.series[0].data = [
         {
-          value: deg - 45,
+          value: deg - 60,
         },
       ];
 
@@ -295,6 +288,7 @@ export default {
     onOpen() {
       this.durationEn = true;
       this.wsState = 2;
+      this.start();
     },
     sendMsg(cmd, val = '') {
       if (!cmd) {
@@ -305,10 +299,10 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
+      console.log(data);
       try {
         this.websocket.send(JSON.stringify(data));
-        console.log(data);
-      } catch (error) {}
+      } catch (error) { }
     },
     reset() {
       this.running = 0;

@@ -97,8 +97,8 @@ const angleChartOption = {
     animationEasing: 'quadraticOut',
     series: [
         {
-            startAngle: 160,
-            endAngle: 20,
+            startAngle: 145,
+            endAngle: 35,
             type: 'gauge',
             axisLine: {
                 lineStyle: {
@@ -129,7 +129,7 @@ const angleChartOption = {
                 },
             },
             min: 0,
-            max: 90,
+            max: 60,
             splitNumber: 3,
             title: {
                 show: false,
@@ -139,12 +139,12 @@ const angleChartOption = {
                 fontSize: 24,
                 offsetCenter: [0, '70%'],
                 formatter: function (value) {
-                    return value === 45 ? '直行' : value > 45 ? '右' : '左';
+                    return value === 30 ? '直行' : value > 30 ? '右' : '左';
                 },
             },
             data: [
                 {
-                    value: 45,
+                    value: 30,
                 },
             ],
         },
