@@ -56,13 +56,13 @@
           <div id="chartDomSpeed" class="w-0 flex-1 h-full"></div>
           <div id="chartDomAngle" class="w-0 flex-1 h-full"></div>
         </div>
-        <div class="flex flex-row justify-center" style="height: max-content">
-          <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleFixedSpeed">
-            <span>定速</span>
-          </van-button>
-          <div class="w-20"></div>
+        <div class="flex flex-row justify-start" style="height: max-content">
           <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleGear">
             <span>切换档位</span>
+          </van-button>
+          <div class="w-20"></div>
+          <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleFixedSpeed">
+            <span>定速</span>
           </van-button>
           <div class="w-20"></div>
           <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
@@ -334,7 +334,7 @@ export default {
   width: calc(100vh - 256px);
   height: calc(100vw - 24px);
   transform-origin: center;
-  padding: 0 24px;
+  padding: 0;
   transform: rotate(90deg) translateX(102px) translateY(100px);
 }
 
