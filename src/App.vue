@@ -116,13 +116,13 @@ export default {
       formatterSec: formatterSec,
       duration: 0,
       durationEn: false,
-      ip: '192.168.133.100',
+      ip: '192.168.92.7',
       checked: false,
       angles: 30,
       preAngles: -1,
       running: 0,
       preRunning: -1,
-      offset: 100,
+      offset: 40,
       gear: 'FORWARD', // FORWARD 前进 BACKWARD 后退 3 停止
       state: 1, //1 启动 2 停止
       wsState: 1, //1 连接中 2 已连接 3 断开连接

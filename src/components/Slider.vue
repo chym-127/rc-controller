@@ -58,7 +58,7 @@ export default {
 
       this.el = document.getElementById(this.uuid).getElementsByClassName('slider')[0];
       this.runBarEl = document.getElementById(this.uuid).getElementsByClassName('run-bar')[0];
-      this.el.style.left = this.current + '%';
+      this.el.style.left = this.current + '%'; 
       this.runBarEl.style.width = this.current + '%';
       const { maxY, minY } = this.getTouchRange();
       const parentNodeW = this.el.parentNode.clientWidth;
@@ -140,8 +140,8 @@ export default {
   position: absolute;
   background-color: #fff;
   border-radius: 10px;
-  width: 25px;
-  height: 25px;
+  width: 35px;
+  height: 35px;
   transition: left 0.15s;
   top: 50%;
   left: 50%;
