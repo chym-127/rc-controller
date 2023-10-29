@@ -60,6 +60,7 @@ export default {
         init() {
             this.el = document.getElementById(this.uuid);
             this.el.addEventListener('touchstart', (event) => {
+                window.navigator.vibrate(100);
                 this.mouseDown = true
             })
 

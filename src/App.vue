@@ -51,7 +51,7 @@
               <span class="font-16-500 c-333">前进</span>
             </Btn>
             <div class="w-20"></div>
-            <Btn :default-pos="20" @onChange="runningChange" :min="20" :max="100" :step="0.5">
+            <Btn :default-pos="20" @onChange="backChange" :min="20" :max="100" :step="0.5">
               <span class="font-16-500 c-333">倒车</span>
             </Btn>
           </div>
@@ -169,6 +169,13 @@ export default {
       }
     },
     runningChange(val) {
+      this.gear = "FORWARD"
+      if (val) {
+        this.running = val;
+      }
+    },
+    backChange(val) {
+      this.gear = "BACKWARD"
       if (val) {
         this.running = val;
       }
