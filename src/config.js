@@ -97,8 +97,8 @@ const angleChartOption = {
     animationEasing: 'quadraticOut',
     series: [
         {
-            startAngle: 145,
-            endAngle: 35,
+            startAngle: 180,
+            endAngle: 0,
             type: 'gauge',
             axisLine: {
                 lineStyle: {
@@ -129,7 +129,7 @@ const angleChartOption = {
                 },
             },
             min: 0,
-            max: 60,
+            max: 180,
             splitNumber: 3,
             title: {
                 show: false,
@@ -144,7 +144,7 @@ const angleChartOption = {
             },
             data: [
                 {
-                    value: 30,
+                    value: 90,
                 },
             ],
         },

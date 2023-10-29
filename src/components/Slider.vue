@@ -27,6 +27,10 @@ export default {
       type: Boolean,
       default: false,
     },
+    keepSlider: {
+      type: Boolean,
+      default: false,
+    }
   },
   data() {
     return {
@@ -39,6 +43,8 @@ export default {
       move: 0,
       direction: 0,
       offset: 100,
+      isStart: false,
+      step: 1,
     };
   },
   mounted() {
@@ -47,7 +53,19 @@ export default {
   },
   methods: {
     animation() {
-      this.el.style.left = this.current + '%';
+      if (!this.keepSlider) {
+        this.el.style.left = this.current + '%';
+      }
+      if (this.keepSlider) {
+        if (this.isStart) {
+          this.current += this.step;
+          if (this.current > 100) {
+            this.current = 100
+          }
+        } else {
+          this.current = 0
+        }
+      }
       this.runBarEl.style.width = this.current + '%';
       this.$emit('onMove', this.current);
       window.requestAnimationFrame(this.animation);
@@ -58,7 +76,7 @@ export default {
 
       this.el = document.getElementById(this.uuid).getElementsByClassName('slider')[0];
       this.runBarEl = document.getElementById(this.uuid).getElementsByClassName('run-bar')[0];
-      this.el.style.left = this.current + '%'; 
+      this.el.style.left = this.current + '%';
       this.runBarEl.style.width = this.current + '%';
       const { maxY, minY } = this.getTouchRange();
       const parentNodeW = this.el.parentNode.clientWidth;
@@ -69,11 +87,14 @@ export default {
             const touch = event.targetTouches[index];
             if (touch.clientY > minY && touch.clientY < maxY) {
               this.start = touch.clientX;
+              if (this.keepSlider) {
+                this.isStart = true
+              }
             }
           }
         }
       });
-      this.el.addEventListener('touchmove', (event) => {
+      !this.keepSlider && this.el.addEventListener('touchmove', (event) => {
         if (event.targetTouches && event.targetTouches.length) {
           for (let index = 0; index < event.targetTouches.length; index++) {
             const touch = event.targetTouches[index];
@@ -103,6 +124,9 @@ export default {
           this.el.style.left = this.current + '%';
           this.$emit('onBack', this.pos);
         }
+        if (this.keepSlider) {
+          this.isStart = false
+        }
       });
     },
 
@@ -124,18 +148,21 @@ export default {
   justify-content: center;
   align-items: center;
 }
+
 .slider-bar {
   width: 100%;
   height: 2px;
   position: relative;
   border-radius: 12px;
 }
+
 .run-bar {
   width: 0%;
   height: 2px;
   transition: width 0.15s;
   border-radius: 12px;
 }
+
 .slider {
   position: absolute;
   background-color: #fff;

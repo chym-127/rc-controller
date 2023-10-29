@@ -14,7 +14,7 @@
           <span>减</span>
         </div>
         <div style="position: relative" class="flex-1 w-0">
-          <Slider :default-pos="0" :back-default-pos="!fixedSpeed" @onMove="runningChange"></Slider>
+          <Slider :default-pos="0" :keepSlider="true" :back-default-pos="!fixedSpeed" @onMove="runningChange"></Slider>
         </div>
         <div class="font-24-500 c-999 ml-40 label" style="float: right">
           <span>加</span>
@@ -156,27 +156,11 @@ export default {
       },
       setup: false,
       fixedSpeed: false,
-      domTop: {
-        el: null,
-        pos: 0,
-        current: 0,
-        start: 0,
-        move: 0,
-        direction: 0,
-      },
-      domBottom: {
-        el: null,
-        pos: 50,
-        current: 50,
-        start: 0,
-        move: 0,
-        direction: 0,
-      },
     };
   },
   created() {
     //ceshi
-    // this.onOpen();
+    this.onOpen();
     this.initWebSocket();
   },
   mounted() {
@@ -193,12 +177,6 @@ export default {
   },
   methods: {
     anglesOnBack() {
-      setTimeout(() => {
-        this.sendMsg('TURN', 90 + 20);
-        setTimeout(() => {
-          this.sendMsg('TURN', 90);
-        }, 60);
-      }, 60);
     },
     anglesChange(val) {
       this.angles = val;
@@ -219,19 +197,18 @@ export default {
     },
     anglesSend(val) {
       let deg = 90;
-      let diff = parseInt((Math.abs(50 - val) / (100 / 60)).toFixed(0));
+      let diff = parseInt((Math.abs(50 - val) / (100 / 180)).toFixed(0));
       if (val > 50) {
-        deg -= diff;
+        deg += parseInt(diff * (60 / 180))
       }
       if (val < 50) {
-        deg += diff;
+        deg -= parseInt(diff * (60 / 180));
       }
       angleChartOption.series[0].data = [
         {
-          value: deg - 60,
+          value: val > 50 ? 90 + diff : 90 - diff,
         },
       ];
-
       this.sendMsg('TURN', deg);
     },
     animation() {
