@@ -3,21 +3,12 @@
 <template>
   <div class="px-12 py-32 w-screen h-screen flex flex-col" style="overflow: hidden">
     <div class="left mb-24">
-      <div>
-        <div>
-          <span class="font-24-500 c-999 label">电机</span>
-        </div>
-        <div class="clear-both"></div>
-      </div>
       <div class="flex flex-row jusity-center items-center">
-        <div class="font-24-500 c-999 mr-40 label" style="float: left">
-          <span>减</span>
-        </div>
         <div style="position: relative" class="flex-1 w-0">
-          <Slider :default-pos="0" :keepSlider="true" :back-default-pos="!fixedSpeed" @onMove="runningChange"></Slider>
-        </div>
-        <div class="font-24-500 c-999 ml-40 label" style="float: right">
-          <span>加</span>
+          <Btn :default-pos="15" @onChange="runningChange" :min="15" :max="100" :step="0.1">
+            <span class="font-16-500 c-333 label">加速</span>
+          </Btn>
+          <!-- <Slider :default-pos="0" :keepSlider="true" :back-default-pos="!fixedSpeed" @onMove="runningChange"></Slider> -->
         </div>
       </div>
     </div>
@@ -79,24 +70,18 @@
     </div>
     <div class="right mt-24">
       <div class="flex flex-row jusity-center items-center">
-        <div class="font-24-500 c-999 mr-40 label" style="float: left">
-          <span>左</span>
-        </div>
         <div style="position: relative" class="flex-1 w-0">
-          <Slider :default-pos="50" :back-default-pos="true" unActiveColor="rgb(25, 137, 250)" @onBack="anglesOnBack"
+          <!-- <Slider :default-pos="50" :back-default-pos="true" unActiveColor="rgb(25, 137, 250)" @onBack="anglesOnBack"
             @onMove="anglesChange">
-          </Slider>
+          </Slider> -->
+          <Btn :default-pos="50" @onChange="anglesChange" :step="1" :min="50" :max="100">
+            <span class="font-16-500 c-333 label">左</span>
+          </Btn>
+          <div class="h-20"></div>
+          <Btn :default-pos="50" @onChange="anglesChange" :step="-1" :min="0" :max="50">
+            <span class="font-16-500 c-333 label">右</span>
+          </Btn>
         </div>
-
-        <div class="font-24-500 c-999 ml-40 label" style="float: right">
-          <span>右</span>
-        </div>
-      </div>
-      <div>
-        <div>
-          <span class="font-24-500 c-999 label">舵机</span>
-        </div>
-        <div class="clear-both"></div>
       </div>
     </div>
   </div>
@@ -105,11 +90,13 @@
 <script>
 import * as echarts from 'echarts';
 import Slider from './components/Slider.vue';
+import Btn from './components/Btn.vue';
+
 import { speedChartOption, angleChartOption, formatterSec } from './config';
 let speedChart = null;
 let angleChart = null;
 export default {
-  components: { Slider },
+  components: { Slider, Btn },
   data() {
     return {
       rotate: 0,
@@ -179,23 +166,30 @@ export default {
     anglesOnBack() {
     },
     anglesChange(val) {
-      this.angles = val;
+      if (val) {
+        this.angles = val;
+      }
     },
     runningChange(val) {
       this.running = val;
     },
     runningSend(val) {
-      let v = ((val / 100) * (255 - this.offset)).toFixed(0);
-      let speed = parseInt(v) + this.offset;
+      let v = ((val / 100) * (255)).toFixed(0);
+      let speed = parseInt(v);
       let chartData = parseInt(((v / (255 - this.offset)) * 100).toFixed(0));
-      speedChartOption.series[0].data = [
-        {
-          value: speed === this.offset ? 0 : chartData,
-        },
-      ];
-      this.sendMsg(speed === this.offset ? 'STOP' : this.gear, speed);
+      if (speed) {
+        speedChartOption.series[0].data = [
+          {
+            value: speed <= this.offset ? 0 : chartData,
+          },
+        ];
+        this.sendMsg(speed <= this.offset ? 'STOP' : this.gear, speed);
+      }
     },
     anglesSend(val) {
+      if (!val) {
+        return
+      }
       let deg = 90;
       let diff = parseInt((Math.abs(50 - val) / (100 / 180)).toFixed(0));
       if (val > 50) {
