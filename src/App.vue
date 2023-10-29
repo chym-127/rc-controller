@@ -2,16 +2,6 @@
 
 <template>
   <div class="px-12 py-32 w-screen h-screen flex flex-col" style="overflow: hidden">
-    <div class="left mb-24">
-      <div class="flex flex-row jusity-center items-center">
-        <div style="position: relative" class="flex-1 w-0">
-          <Btn :default-pos="15" @onChange="runningChange" :min="15" :max="100" :step="0.1">
-            <span class="font-16-500 c-333 label">加速</span>
-          </Btn>
-          <!-- <Slider :default-pos="0" :keepSlider="true" :back-default-pos="!fixedSpeed" @onMove="runningChange"></Slider> -->
-        </div>
-      </div>
-    </div>
     <div class="flex-1">
       <div class="center flex flex-col">
         <div class="h-60 flex flex-row">
@@ -47,40 +37,48 @@
           <div id="chartDomSpeed" class="w-0 flex-1 h-full"></div>
           <div id="chartDomAngle" class="w-0 flex-1 h-full"></div>
         </div>
-        <div class="flex flex-row justify-start" style="height: max-content">
-          <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleGear">
+        <div class="flex flex-row justify-between" style="height: max-content">
+          <!-- <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleGear">
             <span>切换档位</span>
-          </van-button>
-          <div class="w-20"></div>
+          </van-button> -->
+          <!-- <div class="w-20"></div>
           <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleFixedSpeed">
             <span>定速</span>
-          </van-button>
-          <div class="w-20"></div>
-          <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
-            @click="stop">
-            <span>停止</span>
-          </van-button>
-          <div class="w-20"></div>
-          <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90"
-            @click="start">
-            <span>启动</span>
-          </van-button>
-        </div>
-      </div>
-    </div>
-    <div class="right mt-24">
-      <div class="flex flex-row jusity-center items-center">
-        <div style="position: relative" class="flex-1 w-0">
-          <!-- <Slider :default-pos="50" :back-default-pos="true" unActiveColor="rgb(25, 137, 250)" @onBack="anglesOnBack"
-            @onMove="anglesChange">
-          </Slider> -->
-          <Btn :default-pos="50" @onChange="anglesChange" :step="1" :min="50" :max="100">
-            <span class="font-16-500 c-333 label">左</span>
-          </Btn>
-          <div class="h-20"></div>
-          <Btn :default-pos="50" @onChange="anglesChange" :step="-1" :min="0" :max="50">
-            <span class="font-16-500 c-333 label">右</span>
-          </Btn>
+          </van-button> -->
+          <!-- <div class="w-20"></div> -->
+          <div class="flex flex-row justify-center">
+            <Btn :default-pos="20" @onChange="runningChange" :min="20" :max="100" :step="0.5">
+              <span class="font-16-500 c-333">前进</span>
+            </Btn>
+            <div class="w-20"></div>
+            <Btn :default-pos="20" @onChange="runningChange" :min="20" :max="100" :step="0.5">
+              <span class="font-16-500 c-333">倒车</span>
+            </Btn>
+          </div>
+
+          <div class="flex flex-row justify-center">
+            <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
+              @click="stop">
+              <span>停止</span>
+            </van-button>
+            <div class="w-20"></div>
+            <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90"
+              @click="start">
+              <span>启动</span>
+            </van-button>
+          </div>
+
+          <div class="flex flex-row justify-center">
+            <Btn :default-pos="50" @onChange="anglesChange" :step="1" :min="50" :max="100">
+              <span class="font-16-500 c-333">左</span>
+            </Btn>
+            <div class="w-20"></div>
+            <Btn :default-pos="50" @onChange="anglesChange" :step="-1" :min="0" :max="50">
+              <span class="font-16-500 c-333">右</span>
+            </Btn>
+          </div>
+
+
         </div>
       </div>
     </div>
@@ -109,7 +107,7 @@ export default {
       preAngles: -1,
       running: 0,
       preRunning: -1,
-      offset: 40,
+      offset: 52,
       gear: 'FORWARD', // FORWARD 前进 BACKWARD 后退 3 停止
       state: 1, //1 启动 2 停止
       wsState: 1, //1 连接中 2 已连接 3 断开连接
@@ -171,7 +169,9 @@ export default {
       }
     },
     runningChange(val) {
-      this.running = val;
+      if (val) {
+        this.running = val;
+      }
     },
     runningSend(val) {
       let v = ((val / 100) * (255)).toFixed(0);
@@ -298,15 +298,15 @@ export default {
 <style scoped>
 .w-center-box {
   border: 1px solid;
-  width: calc(100vh - 280px);
+  width: calc(100vh - 180px);
 }
 
 .center {
-  width: calc(100vh - 256px);
+  width: calc(100vh - 60px);
   height: calc(100vw - 24px);
   transform-origin: center;
   padding: 0;
-  transform: rotate(90deg) translateX(102px) translateY(100px);
+  transform: rotate(90deg) translateX(200px) translateY(200px);
 }
 
 .label {
