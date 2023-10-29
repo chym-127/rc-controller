@@ -34,18 +34,8 @@
           </div>
         </div>
         <div class="flex-1 flex flex-row mb-12 justify-between">
-          <div id="chartDomSpeed" class="w-0 flex-1 h-full"></div>
-          <div id="chartDomAngle" class="w-0 flex-1 h-full"></div>
         </div>
         <div class="flex flex-row justify-between" style="height: max-content">
-          <!-- <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleGear">
-            <span>切换档位</span>
-          </van-button> -->
-          <!-- <div class="w-20"></div>
-          <van-button :disabled="wsState != 2" plain type="primary" class="w-90" @click="toggleFixedSpeed">
-            <span>定速</span>
-          </van-button> -->
-          <!-- <div class="w-20"></div> -->
           <div class="flex flex-row justify-center">
             <Btn :default-pos="20" @onChange="runningChange" :min="20" :max="100" :step="0.5">
               <span class="font-16-500 c-333">前进</span>
@@ -86,13 +76,9 @@
 </template>
 
 <script>
-import * as echarts from 'echarts';
 import Slider from './components/Slider.vue';
 import Btn from './components/Btn.vue';
-
-import { speedChartOption, angleChartOption, formatterSec } from './config';
-let speedChart = null;
-let angleChart = null;
+import { formatterSec } from './config';
 export default {
   components: { Slider, Btn },
   data() {
@@ -145,11 +131,10 @@ export default {
   },
   created() {
     //ceshi
-    this.onOpen();
+    // this.onOpen();
     this.initWebSocket();
   },
   mounted() {
-    this.initChart();
     setTimeout(() => {
       window.requestAnimationFrame(this.animation);
     }, 1500);
@@ -158,11 +143,8 @@ export default {
         this.duration += 1;
       }
     }, 1000);
-    // this.initHoldBox();
   },
   methods: {
-    anglesOnBack() {
-    },
     anglesChange(val) {
       if (val) {
         this.angles = val;
@@ -183,13 +165,7 @@ export default {
     runningSend(val) {
       let v = ((val / 100) * (255)).toFixed(0);
       let speed = parseInt(v);
-      let chartData = parseInt(((v / (255 - this.offset)) * 100).toFixed(0));
       if (speed) {
-        speedChartOption.series[0].data = [
-          {
-            value: speed <= this.offset ? 0 : chartData,
-          },
-        ];
         this.sendMsg(speed <= this.offset ? 'STOP' : this.gear, speed);
       }
     },
@@ -205,11 +181,6 @@ export default {
       if (val < 50) {
         deg -= parseInt(diff * (60 / 180));
       }
-      angleChartOption.series[0].data = [
-        {
-          value: val > 50 ? 90 + diff : 90 - diff,
-        },
-      ];
       this.sendMsg('TURN', deg);
     },
     animation() {
@@ -224,22 +195,6 @@ export default {
         }
       }
       window.requestAnimationFrame(this.animation);
-    },
-    initChart() {
-      let chartDom = document.getElementById('chartDomSpeed');
-      let chartDomAngle = document.getElementById('chartDomAngle');
-      speedChart = echarts.init(chartDom);
-      angleChart = echarts.init(chartDomAngle);
-
-      speedChartOption && speedChart.setOption(speedChartOption);
-      angleChartOption && angleChart.setOption(angleChartOption);
-
-      setTimeout(() => {
-        setInterval(() => {
-          speedChartOption && speedChart.setOption(speedChartOption);
-          angleChartOption && angleChart.setOption(angleChartOption);
-        }, 300);
-      }, 1000);
     },
     start() {
       this.state = 1;
