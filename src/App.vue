@@ -169,12 +169,12 @@ export default {
       Object.assign(this.config, configStore)
     }
     //ceshi
-    this.onOpen();
+    // this.onOpen();
     this.initWebSocket();
 
     setInterval(() => {
       localStorage.setItem("CONFIG", JSON.stringify(this.config))
-    }, 1000);
+    }, 2000);
   },
   mounted() {
     setTimeout(() => {
