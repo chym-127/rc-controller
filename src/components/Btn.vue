@@ -53,14 +53,17 @@ export default {
         if (this.current >= this.max) {
           this.current = this.max;
         }
-        this.$emit('onChange', this.current);
+        this.$emit('onChange', { val: this.current, flag: false });
       }
       window.requestAnimationFrame(this.animation);
     },
     init() {
       this.el = document.getElementById(this.uuid);
       this.el.addEventListener('touchstart', (event) => {
-        window.navigator.vibrate(100);
+        try {
+          window.navigator.vibrate(100);
+        } catch (error) {
+        }
         this.mouseDown = true;
       });
 
@@ -68,7 +71,7 @@ export default {
         this.mouseDown = false;
         if (this.backDefaultPos) {
           this.current = this.defaultPos;
-          this.$emit('onChange', this.current);
+          this.$emit('onChange', { val: this.current, flag: true });
         }
       });
     },

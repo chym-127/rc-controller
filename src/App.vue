@@ -33,7 +33,21 @@
             </span>
           </div>
         </div>
-        <div class="flex-1 flex flex-row mb-12 justify-center">
+        <div class="flex-1 flex flex-row mb-12 justify-between">
+          <div class="flex-1 py-32">
+            <div class="flex flex-row items-center mb-12">
+              <p class="font-14-500 c-666 mr-12 labelW">最小启动速度:</p>
+              <van-stepper :min="0" :max="100" v-model="config.minSpeed" step="2" />
+            </div>
+            <div class="flex flex-row items-center mb-12">
+              <p class="font-14-500 c-666 mr-12 labelW">后退恒定速度开关:</p>
+              <van-switch v-model="config.keepBackSpeed" />
+            </div>
+            <div class="flex flex-row items-center mb-12">
+              <p class="font-14-500 c-666 mr-12 labelW">后退时恒定速度:</p>
+              <van-stepper :min="0" :max="100" v-model="config.backSpeed" step="2" />
+            </div>
+          </div>
           <div class="road">
             <div class="car">
               <div class="wheel" style="top: 0; left: 0" :style="{ transform: `rotate(${wheelDeg}deg)` }"></div>
@@ -49,10 +63,11 @@
             <div class="scroll-element" id="primary"></div>
             <div class="scroll-element" id="secondary"></div>
           </div>
+          <div class="flex-1"></div>
         </div>
         <div class="flex flex-row justify-between" style="height: max-content">
           <div class="flex flex-row justify-center">
-            <Btn :default-pos="20" @onChange="runningChange" :min="20" :max="100" :step="0.5">
+            <Btn :default-pos="20" @onChange="runningChange" :min="config.minSpeed" :max="100" :step="0.5">
               <span class="font-16-500 c-333">前进</span>
             </Btn>
             <div class="w-20"></div>
@@ -62,25 +77,13 @@
           </div>
 
           <div class="flex flex-row justify-center">
-            <van-button
-              icon="pause-circle-o"
-              :disabled="wsState != 2 || state == 2"
-              plain
-              type="primary"
-              class="w-90"
-              @click="stop"
-            >
+            <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
+              @click="stop">
               <span>停止</span>
             </van-button>
             <div class="w-20"></div>
-            <van-button
-              icon="replay"
-              :disabled="wsState != 2 || state == 1"
-              plain
-              type="primary"
-              class="w-90"
-              @click="start"
-            >
+            <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90"
+              @click="start">
               <span>启动</span>
             </van-button>
           </div>
@@ -115,6 +118,11 @@ export default {
       ip: '192.168.92.7',
       checked: false,
       angles: 50,
+      config: {
+        minSpeed: 20,
+        keepBackSpeed: false,
+        backSpeed: 20,
+      },
       preAngles: -1,
       wheelDeg: 0,
       running: 0,
@@ -156,9 +164,16 @@ export default {
     };
   },
   created() {
+    let configStore = localStorage.getItem("CONFIG") ? JSON.parse(localStorage.getItem("CONFIG")) : null
+    if (configStore) {
+      Object.assign(this.config, configStore)
+    }
     //ceshi
-    // this.onOpen();
+    this.onOpen();
     this.initWebSocket();
+  },
+  beforeUnmount() {
+    localStorage.setItem("CONFIG", JSON.stringify(this.config))
   },
   mounted() {
     setTimeout(() => {
@@ -171,21 +186,32 @@ export default {
     }, 1000);
   },
   methods: {
-    anglesChange(val) {
+    anglesChange(data) {
+      let val = data.val
       if (val) {
         this.angles = val;
       }
     },
-    runningChange(val) {
+    runningChange(data) {
+      let val = data.val
       this.gear = 'FORWARD';
       if (val) {
         this.running = val;
       }
     },
-    backChange(val) {
+    backChange(data) {
+      let val = data.val
+      let flag = data.flag
       this.gear = 'BACKWARD';
-      if (val) {
-        this.running = val;
+      if (!flag && val) {
+        if (this.config.keepBackSpeed) {
+          this.running = this.config.backSpeed
+        } else {
+          this.running = val;
+        }
+      }
+      if (flag) {
+        this.running = 1;
       }
     },
     runningSend(val) {
@@ -276,9 +302,10 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
+      console.log(data);
       try {
         this.websocket.send(JSON.stringify(data));
-      } catch (error) {}
+      } catch (error) { }
     },
     reset() {
       this.running = 0;
@@ -384,6 +411,7 @@ export default {
   position: relative;
   z-index: 2;
 }
+
 .wheel {
   position: absolute;
   border: 2px solid;
@@ -392,11 +420,13 @@ export default {
   height: 30px;
   transition: all 0.1;
 }
+
 .line {
   position: absolute;
   border: 1px solid;
   border-radius: 20px;
 }
+
 .scroll-element {
   z-index: 1;
   width: 12px;
@@ -405,20 +435,24 @@ export default {
   left: 50%;
   /* top: 0%; */
   transform: translateX(-50%);
-  background: linear-gradient(
-    to bottom,
-    #fff 8.33%,
-    #e0e0e0 8.33% 24.99%,
-    #fff 24.99% 41.66%,
-    #e0e0e0 41.66% 58.32%,
-    #fff 58.32% 74.98%,
-    #e0e0e0 74.98% 91.64%,
-    #fff 91.64%
-  );
+  background: linear-gradient(to bottom,
+      #fff 8.33%,
+      #e0e0e0 8.33% 24.99%,
+      #fff 24.99% 41.66%,
+      #e0e0e0 41.66% 58.32%,
+      #fff 58.32% 74.98%,
+      #e0e0e0 74.98% 91.64%,
+      #fff 91.64%);
 }
+
+.labelW {
+  width: 120px;
+}
+
 .scroll-element#primary {
   animation: primary 0s linear infinite;
 }
+
 .scroll-element#secondary {
   animation: secondary 0s linear infinite;
 }
@@ -427,6 +461,7 @@ export default {
   from {
     top: 0%;
   }
+
   to {
     top: 100%;
   }
@@ -436,6 +471,7 @@ export default {
   from {
     top: -100%;
   }
+
   to {
     top: 0%;
   }

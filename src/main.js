@@ -7,13 +7,14 @@ import App from './App.vue'
 const app = createApp(App)
 import 'vant/lib/index.css';
 // vant use 
-import { Button, Slider, Switch, Grid, GridItem, Icon } from 'vant';
+import { Button, Slider, Switch, Grid, GridItem, Icon, Stepper } from 'vant';
 app.use(Button)
 app.use(Slider)
 app.use(Switch)
 app.use(Grid)
 app.use(GridItem)
 app.use(Icon)
+app.use(Stepper)
 
 
 
