@@ -1,10 +1,10 @@
 <script setup></script>
 
 <template>
-  <div class="px-12 py-32 w-screen h-screen flex flex-col" style="overflow: hidden">
+  <div class="w-screen flex flex-col" style="overflow: auto; height: 100dvh">
     <div class="flex-1">
       <div class="center flex flex-col">
-        <div class="h-60 flex flex-row">
+        <div class="h-36 flex flex-row">
           <div class="flex-1">
             <span class="font-14-500 c-666">状态:&nbsp;&nbsp;</span>
             <span class="font-14-500" :style="{ color: wsStateMapper[wsState].color }">
@@ -33,7 +33,22 @@
             </span>
           </div>
         </div>
-        <div class="flex-1 flex flex-row mb-12 justify-between">
+        <div class="flex-1 flex flex-row mb-12 justify-center">
+          <div class="road">
+            <div class="car">
+              <div class="wheel" style="top: 0; left: 0" :style="{ transform: `rotate(${wheelDeg}deg)` }"></div>
+              <div class="line" style="top: 15px; left: 12px; right: 12px"></div>
+              <div class="wheel" style="top: 0; right: 0" :style="{ transform: `rotate(${wheelDeg}deg)` }"></div>
+
+              <div class="line w-2" style="top: 15px; left: 50%; bottom: 15px"></div>
+
+              <div class="wheel" style="bottom: 0; left: 0"></div>
+              <div class="line" style="bottom: 15px; left: 10px; right: 10px"></div>
+              <div class="wheel" style="bottom: 0; right: 0"></div>
+            </div>
+            <div class="scroll-element" id="primary"></div>
+            <div class="scroll-element" id="secondary"></div>
+          </div>
         </div>
         <div class="flex flex-row justify-between" style="height: max-content">
           <div class="flex flex-row justify-center">
@@ -47,13 +62,25 @@
           </div>
 
           <div class="flex flex-row justify-center">
-            <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
-              @click="stop">
+            <van-button
+              icon="pause-circle-o"
+              :disabled="wsState != 2 || state == 2"
+              plain
+              type="primary"
+              class="w-90"
+              @click="stop"
+            >
               <span>停止</span>
             </van-button>
             <div class="w-20"></div>
-            <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90"
-              @click="start">
+            <van-button
+              icon="replay"
+              :disabled="wsState != 2 || state == 1"
+              plain
+              type="primary"
+              class="w-90"
+              @click="start"
+            >
               <span>启动</span>
             </van-button>
           </div>
@@ -67,8 +94,6 @@
               <span class="font-16-500 c-333">右</span>
             </Btn>
           </div>
-
-
         </div>
       </div>
     </div>
@@ -89,8 +114,9 @@ export default {
       durationEn: false,
       ip: '192.168.92.7',
       checked: false,
-      angles: 30,
+      angles: 50,
       preAngles: -1,
+      wheelDeg: 0,
       running: 0,
       preRunning: -1,
       offset: 52,
@@ -131,7 +157,7 @@ export default {
   },
   created() {
     //ceshi
-    // this.onOpen();
+    this.onOpen();
     this.initWebSocket();
   },
   mounted() {
@@ -151,19 +177,19 @@ export default {
       }
     },
     runningChange(val) {
-      this.gear = "FORWARD"
+      this.gear = 'FORWARD';
       if (val) {
         this.running = val;
       }
     },
     backChange(val) {
-      this.gear = "BACKWARD"
+      this.gear = 'BACKWARD';
       if (val) {
         this.running = val;
       }
     },
     runningSend(val) {
-      let v = ((val / 100) * (255)).toFixed(0);
+      let v = ((val / 100) * 255).toFixed(0);
       let speed = parseInt(v);
       if (speed) {
         this.sendMsg(speed <= this.offset ? 'STOP' : this.gear, speed);
@@ -171,12 +197,12 @@ export default {
     },
     anglesSend(val) {
       if (!val) {
-        return
+        return;
       }
       let deg = 90;
       let diff = parseInt((Math.abs(50 - val) / (100 / 180)).toFixed(0));
       if (val > 50) {
-        deg += parseInt(diff * (60 / 180))
+        deg += parseInt(diff * (60 / 180));
       }
       if (val < 50) {
         deg -= parseInt(diff * (60 / 180));
@@ -188,9 +214,27 @@ export default {
         if (this.preRunning !== this.running) {
           this.runningSend(this.running);
           this.preRunning = this.running;
+          let cssSpeed = parseInt((3 - (this.running / 100) * 3).toFixed(2));
+          if (cssSpeed <= 0.2) {
+            cssSpeed = 0.2;
+          }
+          if (this.running === 20 || this.running === 0) {
+            cssSpeed = 0;
+          }
+
+          document.getElementById('primary').style.animationDuration = `${cssSpeed}s`;
+          document.getElementById('secondary').style.animationDuration = `${cssSpeed}s`;
         }
         if (this.preAngles !== this.angles) {
           this.anglesSend(this.angles);
+          this.wheelDeg = 0;
+          let diff = Math.abs(this.angles - 50) * 0.6;
+          if (this.angles > 50) {
+            this.wheelDeg = -diff;
+          }
+          if (this.angles < 50) {
+            this.wheelDeg = diff;
+          }
           this.preAngles = this.angles;
         }
       }
@@ -232,10 +276,9 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
-      console.log(data);
       try {
         this.websocket.send(JSON.stringify(data));
-      } catch (error) { }
+      } catch (error) {}
     },
     reset() {
       this.running = 0;
@@ -260,15 +303,29 @@ export default {
 <style scoped>
 .w-center-box {
   border: 1px solid;
-  width: calc(100vh - 180px);
+  width: 100dvh;
 }
 
-.center {
-  width: calc(100vh - 60px);
-  height: calc(100vw - 24px);
+/* .center {
+  width: 100dvh;
+  border: 1px solid;
+  padding: 32px;
+  height: calc(100vw);
   transform-origin: center;
-  padding: 0;
-  transform: rotate(90deg) translateX(200px) translateY(200px);
+  transform: rotate(90deg) translateX(218px) translateY(218px);
+} */
+
+.center {
+  width: 100dvh;
+  border: 1px solid;
+  position: absolute;
+  top: 50%;
+  left: -50dvh;
+  padding: 24px;
+  height: 100vw;
+  transform-origin: center center;
+  transform: translateY(-50%) translateX(50vw) rotate(90deg);
+  /* transform: rotate(0deg) translateX(50%) translateY(-50%); */
 }
 
 .label {
@@ -306,5 +363,81 @@ export default {
   top: 50%;
   left: 50%;
   transform: translateX(-50%) translateY(-50%);
+}
+
+.road {
+  position: relative;
+  border: 1px solid;
+  width: 120px;
+  height: 100%;
+  display: flex;
+  background-color: #f0f0f0;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.car {
+  width: 60%;
+  height: 70%;
+  margin-top: 30px;
+  /* border: 1px solid; */
+  position: relative;
+  z-index: 2;
+}
+.wheel {
+  position: absolute;
+  border: 2px solid;
+  width: 10px;
+  border-radius: 50px;
+  height: 30px;
+  transition: all 0.1;
+}
+.line {
+  position: absolute;
+  border: 1px solid;
+  border-radius: 20px;
+}
+.scroll-element {
+  z-index: 1;
+  width: 12px;
+  height: 100%;
+  position: absolute;
+  left: 50%;
+  /* top: 0%; */
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to bottom,
+    #fff 8.33%,
+    #e0e0e0 8.33% 24.99%,
+    #fff 24.99% 41.66%,
+    #e0e0e0 41.66% 58.32%,
+    #fff 58.32% 74.98%,
+    #e0e0e0 74.98% 91.64%,
+    #fff 91.64%
+  );
+}
+.scroll-element#primary {
+  animation: primary 0s linear infinite;
+}
+.scroll-element#secondary {
+  animation: secondary 0s linear infinite;
+}
+
+@keyframes primary {
+  from {
+    top: 0%;
+  }
+  to {
+    top: 100%;
+  }
+}
+
+@keyframes secondary {
+  from {
+    top: -100%;
+  }
+  to {
+    top: 0%;
+  }
 }
 </style>
