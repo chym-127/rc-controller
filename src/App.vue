@@ -157,7 +157,7 @@ export default {
   },
   created() {
     //ceshi
-    this.onOpen();
+    // this.onOpen();
     this.initWebSocket();
   },
   mounted() {
