@@ -171,9 +171,10 @@ export default {
     //ceshi
     this.onOpen();
     this.initWebSocket();
-  },
-  beforeUnmount() {
-    localStorage.setItem("CONFIG", JSON.stringify(this.config))
+
+    setInterval(() => {
+      localStorage.setItem("CONFIG", JSON.stringify(this.config))
+    }, 1000);
   },
   mounted() {
     setTimeout(() => {
