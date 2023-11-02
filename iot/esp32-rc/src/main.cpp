@@ -134,10 +134,10 @@ void onCommond(JSONVar obj)
 {
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
-  Serial.print(CMD);
-  Serial.print(" -- ");
-  Serial.print(val);
-  Serial.println();
+  // Serial.print(CMD);
+  // Serial.print(" -- ");
+  // Serial.print(val);
+  // Serial.println();
 
   switch (hashit(CMD))
   {
@@ -148,15 +148,22 @@ void onCommond(JSONVar obj)
     closeEngine();
     break;
   case STOP:
+    Serial.print("STOP MOTOR");
     motorStop();
     break;
   case FORWARD:
+    Serial.print("FORWARD: ");
+    Serial.println(val);
     motorForward(val);
     break;
   case BACKWARD:
+    Serial.print("BACKWARD: ");
+    Serial.println(val);
     motorBackward(val);
     break;
   case SET_SERVO_STEP:
+    Serial.print("SET_SERVO_STEP: ");
+    Serial.println(val);
     servoStep = val;
     break;
   case TURN:
@@ -219,36 +226,44 @@ void initWifi()
 void initPin()
 {
   pinMode(LED, OUTPUT);
-  myservo.setPeriodHertz(100);
+  myservo.setPeriodHertz(50);
   myservo.attach(SERVO_PIN);
   myservo.write(last_pos);
   myMotor.setSpeed(0);
   delay(15);
 }
 
+int turnInterval = 2;
+int previousTurnMillis = 10;
+
 void turn()
 {
   if (current == OFF_STATE)
     return;
-
-  if (new_pos != last_pos)
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousTurnMillis >= (turnInterval * servoStep))
   {
-    int diff = abs(new_pos - last_pos);
-    int offset = servoStep;
-    if (diff < offset)
+    if (new_pos != last_pos)
     {
-      offset = diff;
+      int diff = abs(new_pos - last_pos);
+      int offset = servoStep;
+      if (diff < offset)
+      {
+        offset = diff;
+      }
+      if (last_pos > new_pos)
+      {
+        last_pos -= offset;
+      }
+      if (last_pos < new_pos)
+      {
+        last_pos += offset;
+      }
+      Serial.print("TRUN: ");
+      Serial.println(last_pos);
+      myservo.write(last_pos);
+      previousMillis = currentMillis;
     }
-    if (last_pos > new_pos)
-    {
-      last_pos -= offset;
-    }
-    if (last_pos < new_pos)
-    {
-      last_pos += offset;
-    }
-    myservo.write(last_pos);
-    delay(10);
   }
 }
 

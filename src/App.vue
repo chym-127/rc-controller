@@ -37,7 +37,7 @@
           <div class="flex-1 py-32">
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">最小启动速度:</p>
-              <van-stepper :min="0" :max="100" v-model="config.minSpeed" step="2" />
+              <van-stepper disable-input :min="0" :max="100" v-model="config.minSpeed" step="2" />
             </div>
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">后退恒定速度开关:</p>
@@ -45,7 +45,7 @@
             </div>
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">后退时恒定速度:</p>
-              <van-stepper :min="0" :max="100" v-model="config.backSpeed" step="2" />
+              <van-stepper disable-input :min="0" :max="100" v-model="config.backSpeed" step="2" />
             </div>
           </div>
           <div class="road">
@@ -66,11 +66,18 @@
           <div class="flex-1 py-32 pl-24">
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">转向速度:</p>
-              <van-stepper :min="0" :max="30" v-model="config.trunStep" @change="trunStepChange" step="1" />
+              <van-stepper
+                disable-input
+                :min="0"
+                :max="30"
+                v-model="config.trunStep"
+                @change="trunStepChange"
+                step="1"
+              />
             </div>
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">转向范围:</p>
-              <van-stepper :min="30" :max="120" v-model="config.trunRange" step="1" />
+              <van-stepper disable-input :min="30" :max="120" v-model="config.trunRange" step="1" />
             </div>
           </div>
         </div>
@@ -110,11 +117,11 @@
           </div>
 
           <div class="flex flex-row justify-center">
-            <Btn :default-pos="50" @onChange="anglesChange" :step="config.trunStep" :min="50" :max="100">
+            <Btn :default-pos="90" @onChange="anglesChange" :step="config.trunStep" :min="90" :max="turnMax">
               <span class="font-16-500 c-333">左</span>
             </Btn>
             <div class="w-20"></div>
-            <Btn :default-pos="50" @onChange="anglesChange" :step="-config.trunStep" :min="0" :max="50">
+            <Btn :default-pos="90" @onChange="anglesChange" :step="-config.trunStep" :min="turnMin" :max="90">
               <span class="font-16-500 c-333">右</span>
             </Btn>
           </div>
@@ -186,13 +193,21 @@ export default {
       fixedSpeed: false,
     };
   },
+  computed: {
+    turnMax() {
+      return this.config.trunRange / 2 + 90;
+    },
+    turnMin() {
+      return 90 - this.config.trunRange / 2;
+    },
+  },
   created() {
     let configStore = localStorage.getItem('CONFIG') ? JSON.parse(localStorage.getItem('CONFIG')) : null;
     if (configStore) {
       Object.assign(this.config, configStore);
     }
     //ceshi
-    this.onOpen();
+    // this.onOpen();
     this.initWebSocket();
 
     setInterval(() => {
@@ -256,15 +271,7 @@ export default {
       if (!val) {
         return;
       }
-      let deg = 90;
-      let diff = parseInt((Math.abs(50 - val) / (100 / 180)).toFixed(0));
-      if (val > 50) {
-        deg += parseInt(diff * (this.config.trunRange / 180));
-      }
-      if (val < 50) {
-        deg -= parseInt(diff * (this.config.trunRange / 180));
-      }
-      this.sendMsg('TURN', deg);
+      this.sendMsg('TURN', val);
     },
     animation() {
       if (this.wsState === 2) {
@@ -285,11 +292,11 @@ export default {
         if (this.preAngles !== this.angles) {
           this.anglesSend(this.angles);
           this.wheelDeg = 0;
-          let diff = Math.abs(this.angles - 50) * 0.6;
-          if (this.angles > 50) {
+          let diff = Math.abs(this.angles - 90);
+          if (this.angles > 90) {
             this.wheelDeg = -diff;
           }
-          if (this.angles < 50) {
+          if (this.angles < 90) {
             this.wheelDeg = diff;
           }
           this.preAngles = this.angles;
@@ -337,13 +344,14 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
+      console.log(data);
       try {
         this.websocket.send(JSON.stringify(data));
       } catch (error) {}
     },
     reset() {
       this.running = 0;
-      this.angles = 50;
+      this.angles = 90;
       this.fixedSpeed = false;
     },
     onClose() {
