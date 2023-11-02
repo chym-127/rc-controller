@@ -44,10 +44,10 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 // wifi名称
 const char *ssid = "RC_C";
-// const char *ssid = "AOETECH";
+// const char *ssid = "RCESP32";
 // wifi 密码
 const char *password = "15827330290";
-// const char *password = "67810550";
+// const char *password = "123456789";
 unsigned long previousMillis = 0;
 unsigned long interval = 10000;
 unsigned long previousMillisLed = 0;
@@ -134,10 +134,10 @@ void onCommond(JSONVar obj)
 {
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
-  // Serial.print(CMD);
-  // Serial.print(" -- ");
-  // Serial.print(val);
-  // Serial.println();
+  Serial.print(CMD);
+  Serial.print(" -- ");
+  Serial.print(val);
+  Serial.println();
 
   switch (hashit(CMD))
   {
@@ -203,10 +203,6 @@ void initWebSocket()
 void initWifi()
 {
   Serial.begin(115200);
-  // if (!WiFi.config(local_IP, gateway, subnet, primaryDNS))
-  // {
-  //   Serial.println("STA Failed to configure");
-  // }
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   if (WiFi.waitForConnectResult() != WL_CONNECTED)
@@ -223,11 +219,11 @@ void initWifi()
 void initPin()
 {
   pinMode(LED, OUTPUT);
-  myservo.setPeriodHertz(50);
+  myservo.setPeriodHertz(200);
   myservo.attach(SERVO_PIN);
   myservo.write(last_pos);
-  delay(15);
   myMotor.setSpeed(0);
+  delay(15);
 }
 
 void turn()
@@ -251,9 +247,6 @@ void turn()
     {
       last_pos += offset;
     }
-    Serial.println(diff);
-    Serial.print("TRUN: ");
-    Serial.println(last_pos);
     myservo.write(last_pos);
     delay(10);
   }
