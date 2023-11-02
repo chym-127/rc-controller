@@ -19,12 +19,12 @@
             </span>
           </div>
 
-          <div class="flex-1">
-            <span class="font-14-500 c-666">定速:&nbsp;&nbsp;</span>
+          <!-- <div class="flex-1">
+            <span class="font-14-500 c-666">指令:&nbsp;&nbsp;</span>
             <span class="font-14-500" :style="{ color: fixedSpeed ? '#07c160' : '#969799' }">
               {{ fixedSpeed ? '开' : '关' }}
             </span>
-          </div>
+          </div> -->
 
           <div class="flex-1">
             <span class="font-14-500 c-666">时长:&nbsp;&nbsp;</span>
@@ -65,12 +65,12 @@
           </div>
           <div class="flex-1 py-32 pl-24">
             <div class="flex flex-row items-center mb-12">
-              <p class="font-14-500 c-666 mr-12 labelW">舵机每次转向角度:</p>
+              <p class="font-14-500 c-666 mr-12 labelW">转向速度:</p>
               <van-stepper :min="0" :max="15" v-model="config.trunStep" @change="trunStepChange" step="1" />
             </div>
           </div>
         </div>
-        <div class="flex flex-row justify-between" style="height: max-content">
+        <div class="flex flex-row justify-between items-center" style="height: max-content">
           <div class="flex flex-row justify-center">
             <Btn :default-pos="20" @onChange="runningChange" :min="config.minSpeed" :max="100" :step="0.5">
               <span class="font-16-500 c-333">前进</span>
@@ -86,7 +86,7 @@
               icon="pause-circle-o"
               :disabled="wsState != 2 || state == 2"
               plain
-              type="primary"
+              type="danger"
               class="w-90"
               @click="stop"
             >
