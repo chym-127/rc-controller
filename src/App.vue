@@ -37,7 +37,7 @@
           <div class="flex-1 py-32">
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">最小启动速度:</p>
-              <van-stepper disable-input :min="0" :max="100" v-model="config.minSpeed" step="2" />
+              <van-stepper disable-input :min="0" :max="255" v-model="config.minSpeed" step="5" />
             </div>
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">后退恒定速度开关:</p>
@@ -45,7 +45,7 @@
             </div>
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">后退时恒定速度:</p>
-              <van-stepper disable-input :min="0" :max="100" v-model="config.backSpeed" step="2" />
+              <van-stepper disable-input :min="0" :max="255" v-model="config.backSpeed" step="5" />
             </div>
           </div>
           <div class="road">
@@ -77,17 +77,17 @@
             </div>
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">转向范围:</p>
-              <van-stepper disable-input :min="30" :max="120" v-model="config.trunRange" step="1" />
+              <van-stepper disable-input :min="30" :max="120" v-model="config.trunRange" step="10" />
             </div>
           </div>
         </div>
         <div class="flex flex-row justify-between items-center" style="height: max-content">
           <div class="flex flex-row justify-center">
-            <Btn :default-pos="20" @onChange="runningChange" :min="config.minSpeed" :max="100" :step="0.5">
+            <Btn :default-pos="offset" @onChange="runningChange" :min="config.minSpeed" :max="255" :step="1">
               <span class="font-16-500 c-333">前进</span>
             </Btn>
             <div class="w-20"></div>
-            <Btn :default-pos="20" @onChange="backChange" :min="20" :max="100" :step="0.5">
+            <Btn :default-pos="offset" @onChange="backChange" :min="offset" :max="255" :step="1">
               <span class="font-16-500 c-333">倒车</span>
             </Btn>
           </div>
@@ -145,19 +145,19 @@ export default {
       durationEn: false,
       ip: '192.168.92.7',
       checked: false,
-      angles: 50,
+      angles: 90,
       config: {
-        minSpeed: 20,
+        minSpeed: 50,
         trunRange: 60,
         keepBackSpeed: false,
-        backSpeed: 20,
+        backSpeed: 100,
         trunStep: 1,
       },
       preAngles: -1,
       wheelDeg: 0,
       running: 0,
       preRunning: -1,
-      offset: 52,
+      offset: 50,
       gear: 'FORWARD', // FORWARD 前进 BACKWARD 后退 3 停止
       state: 1, //1 启动 2 停止
       wsState: 1, //1 连接中 2 已连接 3 断开连接
@@ -207,7 +207,7 @@ export default {
       Object.assign(this.config, configStore);
     }
     //ceshi
-    // this.onOpen();
+    this.onOpen();
     this.initWebSocket();
 
     setInterval(() => {
@@ -258,9 +258,7 @@ export default {
         this.running = 0;
       }
     },
-    runningSend(val) {
-      let v = ((val / 100) * 255).toFixed(0);
-      let speed = parseInt(v);
+    runningSend(speed) {
       if (speed) {
         this.sendMsg(this.gear, speed);
       } else {
@@ -278,7 +276,7 @@ export default {
         if (this.preRunning !== this.running) {
           this.runningSend(this.running);
           this.preRunning = this.running;
-          let cssSpeed = parseInt((3 - (this.running / 100) * 3).toFixed(2));
+          let cssSpeed = parseInt((3 - (this.running / 255) * 3).toFixed(2));
           if (cssSpeed <= 0.2) {
             cssSpeed = 0.2;
           }
