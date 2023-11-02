@@ -68,6 +68,10 @@
               <p class="font-14-500 c-666 mr-12 labelW">转向速度:</p>
               <van-stepper :min="0" :max="30" v-model="config.trunStep" @change="trunStepChange" step="1" />
             </div>
+            <div class="flex flex-row items-center mb-12">
+              <p class="font-14-500 c-666 mr-12 labelW">转向范围:</p>
+              <van-stepper :min="30" :max="120" v-model="config.trunRange" step="1" />
+            </div>
           </div>
         </div>
         <div class="flex flex-row justify-between items-center" style="height: max-content">
@@ -137,6 +141,7 @@ export default {
       angles: 50,
       config: {
         minSpeed: 20,
+        trunRange: 60,
         keepBackSpeed: false,
         backSpeed: 20,
         trunStep: 1,
@@ -254,10 +259,10 @@ export default {
       let deg = 90;
       let diff = parseInt((Math.abs(50 - val) / (100 / 180)).toFixed(0));
       if (val > 50) {
-        deg += parseInt(diff * (60 / 180));
+        deg += parseInt(diff * (this.config.trunRange / 180));
       }
       if (val < 50) {
-        deg -= parseInt(diff * (60 / 180));
+        deg -= parseInt(diff * (this.config.trunRange / 180));
       }
       this.sendMsg('TURN', deg);
     },
