@@ -19,7 +19,7 @@
             </span>
           </div>
 
-          <div class="flex-1">
+          <div style="flex: 2;">
             <span class="font-14-500 c-666">最近命令:&nbsp;&nbsp;</span>
             <span class="font-14-500" :style="{ color: '#07c160' }">
               {{ currentCmd }}
@@ -364,7 +364,7 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
-      this.currentCmd = `${cmd}:${val || '-'}`;
+      this.currentCmd = `${cmd}: ${val || '-'}`;
       try {
         this.websocket.send(JSON.stringify(data));
       } catch (error) {}
