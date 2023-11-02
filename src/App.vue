@@ -19,12 +19,12 @@
             </span>
           </div>
 
-          <!-- <div class="flex-1">
-            <span class="font-14-500 c-666">指令:&nbsp;&nbsp;</span>
-            <span class="font-14-500" :style="{ color: fixedSpeed ? '#07c160' : '#969799' }">
-              {{ fixedSpeed ? '开' : '关' }}
+          <div class="flex-1">
+            <span class="font-14-500 c-666">最近命令:&nbsp;&nbsp;</span>
+            <span class="font-14-500" :style="{ color: '#07c160' }">
+              {{ currentCmd }}
             </span>
-          </div> -->
+          </div>
 
           <div class="flex-1">
             <span class="font-14-500 c-666">时长:&nbsp;&nbsp;</span>
@@ -94,6 +94,17 @@
 
           <div class="flex flex-row justify-center">
             <van-button
+              icon="revoke"
+              :disabled="wsState != 2 || state == 2"
+              plain
+              type="warning"
+              class="w-90"
+              @click="resetDefault"
+            >
+              <span>恢复默认值</span>
+            </van-button>
+            <div class="w-20"></div>
+            <van-button
               icon="pause-circle-o"
               :disabled="wsState != 2 || state == 2"
               plain
@@ -147,12 +158,13 @@ export default {
       checked: false,
       angles: 90,
       config: {
-        minSpeed: 50,
+        minSpeed: 150,
         trunRange: 60,
-        keepBackSpeed: false,
+        keepBackSpeed: true,
         backSpeed: 100,
         trunStep: 1,
       },
+      currentCmd: '',
       preAngles: -1,
       wheelDeg: 0,
       running: 0,
@@ -207,7 +219,7 @@ export default {
       Object.assign(this.config, configStore);
     }
     //ceshi
-    this.onOpen();
+    // this.onOpen();
     this.initWebSocket();
 
     setInterval(() => {
@@ -225,6 +237,16 @@ export default {
     }, 1000);
   },
   methods: {
+    resetDefault() {
+      this.config = {
+        minSpeed: 150,
+        trunRange: 60,
+        keepBackSpeed: true,
+        backSpeed: 100,
+        trunStep: 1,
+      };
+      this.onOpen();
+    },
     anglesChange(data) {
       let val = data.val;
       if (val) {
@@ -342,7 +364,7 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
-      console.log(data);
+      this.currentCmd = `${cmd}:${val || '-'}`;
       try {
         this.websocket.send(JSON.stringify(data));
       } catch (error) {}
