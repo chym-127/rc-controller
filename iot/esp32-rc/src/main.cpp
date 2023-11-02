@@ -8,6 +8,8 @@
 #include <ESPAsyncWebServer.h>
 #include <ESP32Servo.h>
 #include <L298N.h>
+#include "esp_wifi.h"
+
 
 #define LED 2
 #define M_IN_1 33
@@ -228,12 +230,14 @@ void initPin()
   pinMode(LED, OUTPUT);
   myservo.setPeriodHertz(50);
   myservo.attach(SERVO_PIN);
+  myservo.write(last_pos + 10);
+  delay(100);
   myservo.write(last_pos);
   myMotor.setSpeed(0);
   delay(15);
 }
 
-int turnInterval = 2;
+int turnInterval = 6;
 int previousTurnMillis = 10;
 
 void turn()
@@ -321,6 +325,7 @@ void setup()
   initPin();
   Serial.begin(115200);
   initWifi();
+  esp_wifi_set_max_tx_power(5);
   initWebSocket();
   server.begin();
 }
