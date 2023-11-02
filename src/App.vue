@@ -63,7 +63,12 @@
             <div class="scroll-element" id="primary"></div>
             <div class="scroll-element" id="secondary"></div>
           </div>
-          <div class="flex-1"></div>
+          <div class="flex-1 py-32 pl-24">
+            <div class="flex flex-row items-center mb-12">
+              <p class="font-14-500 c-666 mr-12 labelW">舵机每次转向角度:</p>
+              <van-stepper :min="0" :max="15" v-model="config.trunStep" @change="trunStepChange" step="1" />
+            </div>
+          </div>
         </div>
         <div class="flex flex-row justify-between" style="height: max-content">
           <div class="flex flex-row justify-center">
@@ -77,23 +82,35 @@
           </div>
 
           <div class="flex flex-row justify-center">
-            <van-button icon="pause-circle-o" :disabled="wsState != 2 || state == 2" plain type="primary" class="w-90"
-              @click="stop">
+            <van-button
+              icon="pause-circle-o"
+              :disabled="wsState != 2 || state == 2"
+              plain
+              type="primary"
+              class="w-90"
+              @click="stop"
+            >
               <span>停止</span>
             </van-button>
             <div class="w-20"></div>
-            <van-button icon="replay" :disabled="wsState != 2 || state == 1" plain type="primary" class="w-90"
-              @click="start">
+            <van-button
+              icon="replay"
+              :disabled="wsState != 2 || state == 1"
+              plain
+              type="primary"
+              class="w-90"
+              @click="start"
+            >
               <span>启动</span>
             </van-button>
           </div>
 
           <div class="flex flex-row justify-center">
-            <Btn :default-pos="50" @onChange="anglesChange" :step="1" :min="50" :max="100">
+            <Btn :default-pos="50" @onChange="anglesChange" :step="config.trunStep" :min="50" :max="100">
               <span class="font-16-500 c-333">左</span>
             </Btn>
             <div class="w-20"></div>
-            <Btn :default-pos="50" @onChange="anglesChange" :step="-1" :min="0" :max="50">
+            <Btn :default-pos="50" @onChange="anglesChange" :step="-config.trunStep" :min="0" :max="50">
               <span class="font-16-500 c-333">右</span>
             </Btn>
           </div>
@@ -122,6 +139,7 @@ export default {
         minSpeed: 20,
         keepBackSpeed: false,
         backSpeed: 20,
+        trunStep: 1,
       },
       preAngles: -1,
       wheelDeg: 0,
@@ -164,16 +182,17 @@ export default {
     };
   },
   created() {
-    let configStore = localStorage.getItem("CONFIG") ? JSON.parse(localStorage.getItem("CONFIG")) : null
+    let configStore = localStorage.getItem('CONFIG') ? JSON.parse(localStorage.getItem('CONFIG')) : null;
     if (configStore) {
-      Object.assign(this.config, configStore)
+      Object.assign(this.config, configStore);
+      this.trunStepChange();
     }
     //ceshi
-    // this.onOpen();
+    this.onOpen();
     this.initWebSocket();
 
     setInterval(() => {
-      localStorage.setItem("CONFIG", JSON.stringify(this.config))
+      localStorage.setItem('CONFIG', JSON.stringify(this.config));
     }, 2000);
   },
   mounted() {
@@ -188,38 +207,45 @@ export default {
   },
   methods: {
     anglesChange(data) {
-      let val = data.val
+      let val = data.val;
       if (val) {
         this.angles = val;
       }
     },
     runningChange(data) {
-      let val = data.val
+      let val = data.val;
+      let flag = data.flag;
+
       this.gear = 'FORWARD';
-      if (val) {
+      if (!flag && val) {
         this.running = val;
+      }
+      if (flag) {
+        this.running = 0;
       }
     },
     backChange(data) {
-      let val = data.val
-      let flag = data.flag
+      let val = data.val;
+      let flag = data.flag;
       this.gear = 'BACKWARD';
       if (!flag && val) {
         if (this.config.keepBackSpeed) {
-          this.running = this.config.backSpeed
+          this.running = this.config.backSpeed;
         } else {
           this.running = val;
         }
       }
       if (flag) {
-        this.running = 1;
+        this.running = 0;
       }
     },
     runningSend(val) {
       let v = ((val / 100) * 255).toFixed(0);
       let speed = parseInt(v);
       if (speed) {
-        this.sendMsg(speed <= this.offset ? 'STOP' : this.gear, speed);
+        this.sendMsg(this.gear, speed);
+      } else {
+        this.sendMsg('STOP', 0);
       }
     },
     anglesSend(val) {
@@ -245,7 +271,7 @@ export default {
           if (cssSpeed <= 0.2) {
             cssSpeed = 0.2;
           }
-          if (this.running === 20 || this.running === 0) {
+          if (this.running === 0) {
             cssSpeed = 0;
           }
 
@@ -275,6 +301,9 @@ export default {
       this.state = 2;
       this.reset();
       this.sendMsg('OFF');
+    },
+    trunStepChange() {
+      this.sendMsg('SET_SERVO_STEP', this.config.trunStep);
     },
     toggleGear() {
       this.gear = this.gear === 'FORWARD' ? 'BACKWARD' : 'FORWARD';
@@ -306,7 +335,7 @@ export default {
       console.log(data);
       try {
         this.websocket.send(JSON.stringify(data));
-      } catch (error) { }
+      } catch (error) {}
     },
     reset() {
       this.running = 0;
@@ -436,14 +465,16 @@ export default {
   left: 50%;
   /* top: 0%; */
   transform: translateX(-50%);
-  background: linear-gradient(to bottom,
-      #fff 8.33%,
-      #e0e0e0 8.33% 24.99%,
-      #fff 24.99% 41.66%,
-      #e0e0e0 41.66% 58.32%,
-      #fff 58.32% 74.98%,
-      #e0e0e0 74.98% 91.64%,
-      #fff 91.64%);
+  background: linear-gradient(
+    to bottom,
+    #fff 8.33%,
+    #e0e0e0 8.33% 24.99%,
+    #fff 24.99% 41.66%,
+    #e0e0e0 41.66% 58.32%,
+    #fff 58.32% 74.98%,
+    #e0e0e0 74.98% 91.64%,
+    #fff 91.64%
+  );
 }
 
 .labelW {

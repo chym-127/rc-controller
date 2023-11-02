@@ -28,7 +28,8 @@ enum cmd_code
   TURN,
   STOP,
   FORWARD,
-  BACKWARD
+  BACKWARD,
+  SET_SERVO_STEP,
 };
 
 Servo myservo;
@@ -37,6 +38,7 @@ int last_pos = 90;
 int new_pos = 90;
 int led_state = 0;
 bool reconning = false;
+int servoStep = 1;
 
 AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
@@ -79,6 +81,8 @@ cmd_code hashit(String inString)
     return FORWARD;
   if (inString == "BACKWARD")
     return BACKWARD;
+  if (inString == "SET_SERVO_STEP")
+    return SET_SERVO_STEP;
   return STOP;
 }
 
@@ -130,10 +134,10 @@ void onCommond(JSONVar obj)
 {
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
-  Serial.print(CMD);
-  Serial.print(" -- ");
-  Serial.print(val);
-  Serial.println();
+  // Serial.print(CMD);
+  // Serial.print(" -- ");
+  // Serial.print(val);
+  // Serial.println();
 
   switch (hashit(CMD))
   {
@@ -151,6 +155,9 @@ void onCommond(JSONVar obj)
     break;
   case BACKWARD:
     motorBackward(val);
+    break;
+  case SET_SERVO_STEP:
+    servoStep = val;
     break;
   case TURN:
     if (current == OFF_STATE)
@@ -227,19 +234,29 @@ void turn()
 {
   if (current == OFF_STATE)
     return;
+
   if (new_pos != last_pos)
   {
+    int diff = abs(new_pos - last_pos);
+    int offset = servoStep;
+    if (diff < offset)
+    {
+      offset = diff;
+    }
     if (last_pos > new_pos)
     {
-      last_pos -= 1;
+      last_pos -= offset;
     }
     if (last_pos < new_pos)
     {
-      last_pos += 1;
+      last_pos += offset;
     }
+    Serial.println(diff);
+    Serial.print("TRUN: ");
+    Serial.println(last_pos);
+    myservo.write(last_pos);
+    delay(10);
   }
-  myservo.write(last_pos);
-  delay(10);
 }
 
 void checkWifiState()
