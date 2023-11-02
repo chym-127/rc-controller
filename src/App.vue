@@ -66,7 +66,7 @@
           <div class="flex-1 py-32 pl-24">
             <div class="flex flex-row items-center mb-12">
               <p class="font-14-500 c-666 mr-12 labelW">转向速度:</p>
-              <van-stepper :min="0" :max="15" v-model="config.trunStep" @change="trunStepChange" step="1" />
+              <van-stepper :min="0" :max="30" v-model="config.trunStep" @change="trunStepChange" step="1" />
             </div>
           </div>
         </div>
@@ -185,7 +185,6 @@ export default {
     let configStore = localStorage.getItem('CONFIG') ? JSON.parse(localStorage.getItem('CONFIG')) : null;
     if (configStore) {
       Object.assign(this.config, configStore);
-      this.trunStepChange();
     }
     //ceshi
     this.onOpen();
@@ -319,6 +318,7 @@ export default {
       this.websocket.onmessage = this.onMessage;
     },
     onOpen() {
+      this.trunStepChange();
       this.durationEn = true;
       this.wsState = 2;
       this.start();
@@ -332,7 +332,6 @@ export default {
         COMMOND: cmd,
         VALUE: val,
       };
-      console.log(data);
       try {
         this.websocket.send(JSON.stringify(data));
       } catch (error) {}

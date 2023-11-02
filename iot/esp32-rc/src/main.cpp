@@ -219,7 +219,7 @@ void initWifi()
 void initPin()
 {
   pinMode(LED, OUTPUT);
-  myservo.setPeriodHertz(200);
+  myservo.setPeriodHertz(100);
   myservo.attach(SERVO_PIN);
   myservo.write(last_pos);
   myMotor.setSpeed(0);
