@@ -29,11 +29,17 @@ export default {
       type: Number,
       default: 0,
     },
+    acceleration: {
+      type: Number,
+      default: 0,
+    },
   },
   data() {
     return {
       uuid: uuidv4(),
       current: 0,
+      preTime: 0,
+      nowTime: 0,
       mouseDown: false,
       el: null,
     };
@@ -44,9 +50,10 @@ export default {
     window.requestAnimationFrame(this.animation);
   },
   methods: {
-    animation() {
+    animation(time) {
       if (this.mouseDown) {
-        this.current += this.step;
+        let diff = +new Date() - this.preTime;
+        this.current += parseInt(this.step + (diff / 1000) * this.acceleration);
         if (this.current <= this.min) {
           this.current = this.min;
         }
@@ -62,9 +69,9 @@ export default {
       this.el.addEventListener('touchstart', (event) => {
         try {
           window.navigator.vibrate(100);
-        } catch (error) {
-        }
+        } catch (error) {}
         this.mouseDown = true;
+        this.preTime = +new Date();
       });
 
       this.el.addEventListener('touchend', (event) => {

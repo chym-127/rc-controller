@@ -83,25 +83,32 @@
         </div>
         <div class="flex flex-row justify-between items-center" style="height: max-content">
           <div class="flex flex-row justify-center">
-            <Btn :default-pos="offset" @onChange="runningChange" :min="config.minSpeed" :max="255" :step="1">
+            <Btn
+              :default-pos="offset"
+              :acceleration="config.forwardAcceleration"
+              @onChange="runningChange"
+              :min="config.minSpeed"
+              :max="255"
+              :step="1"
+            >
               <span class="font-16-500 c-333">前进</span>
             </Btn>
             <div class="w-20"></div>
-            <Btn :default-pos="offset" @onChange="backChange" :min="offset" :max="255" :step="1">
+            <Btn
+              :default-pos="offset"
+              :acceleration="config.backwardAcceleration"
+              @onChange="backChange"
+              :min="offset"
+              :max="255"
+              :step="1"
+            >
               <span class="font-16-500 c-333">倒车</span>
             </Btn>
           </div>
 
           <div class="flex flex-row justify-center">
-            <van-button
-              icon="revoke"
-              :disabled="wsState != 2 || state == 2"
-              plain
-              type="warning"
-              class="w-90"
-              @click="resetDefault"
-            >
-              <span>恢复默认值</span>
+            <van-button icon="setting-o" plain type="info" class="w-90" @click="showConfig = true">
+              <span>设置</span>
             </van-button>
             <div class="w-20"></div>
             <van-button
@@ -139,6 +146,60 @@
         </div>
       </div>
     </div>
+
+    <van-popup
+      v-model:show="showConfig"
+      position="left"
+      :style="{ width: '50vw', height: '100dvh', overflow: 'hidden' }"
+    >
+      <div class="config-box flex flex-row px-24 py-12">
+        <div class="flex-1">
+          <div>
+            <span class="font-16-600 c-333">电机配置</span>
+          </div>
+          <div class="flex flex-row items-center mb-12">
+            <p class="font-14-500 c-666 mr-12 labelW">前进加速度:</p>
+            <van-stepper disable-input :min="0" :max="15" v-model="config.forwardAcceleration" step="1" />
+          </div>
+          <div class="flex flex-row items-center mb-12">
+            <p class="font-14-500 c-666 mr-12 labelW">后退加速度:</p>
+            <van-stepper disable-input :min="0" :max="15" v-model="config.backwardAcceleration" step="1" />
+          </div>
+          <div class="flex flex-row items-center mb-12">
+            <p class="font-14-500 c-666 mr-12 labelW">PWM频率:</p>
+            <van-stepper
+              disable-input
+              :min="50"
+              :max="3000"
+              @change="setMotorFreq"
+              v-model="config.motorPwmFreq"
+              step="50"
+            />
+          </div>
+        </div>
+        <div class="w-200">
+          <van-button icon="revoke" plain type="warning" class="w-90" @click="resetDefault">
+            <span>恢复默认值</span>
+          </van-button>
+        </div>
+        <div class="flex-1">
+          <div>
+            <span class="font-16-600 c-333">舵机配置</span>
+          </div>
+          <div class="flex flex-row items-center mb-12">
+            <p class="font-14-500 c-666 mr-12 labelW">PWM频率:</p>
+            <van-stepper
+              disable-input
+              :min="50"
+              :max="150"
+              @change="setServoFreq"
+              v-model="config.servoPwmFreq"
+              step="50"
+            />
+          </div>
+        </div>
+      </div>
+    </van-popup>
   </div>
 </template>
 
@@ -153,6 +214,7 @@ export default {
       rotate: 0,
       formatterSec: formatterSec,
       duration: 0,
+      showConfig: false,
       durationEn: false,
       ip: '192.168.92.7',
       checked: false,
@@ -163,6 +225,10 @@ export default {
         keepBackSpeed: true,
         backSpeed: 100,
         trunStep: 1,
+        forwardAcceleration: 1,
+        backwardAcceleration: 0,
+        motorPwmFreq: 500,
+        servoPwmFreq: 100,
       },
       currentCmd: '',
       preAngles: -1,
@@ -244,6 +310,10 @@ export default {
         keepBackSpeed: true,
         backSpeed: 100,
         trunStep: 1,
+        forwardAcceleration: 1,
+        backwardAcceleration: 0,
+        motorPwmFreq: 500,
+        servoPwmFreq: 100,
       };
       this.onOpen();
     },
@@ -336,6 +406,12 @@ export default {
     trunStepChange() {
       this.sendMsg('SET_SERVO_STEP', this.config.trunStep);
     },
+    setMotorFreq() {
+      this.sendMsg('SET_MOTOR_FREQ', this.config.motorPwmFreq);
+    },
+    setServoFreq() {
+      this.sendMsg('SET_SERVO_FREQ', this.config.servoPwmFreq);
+    },
     toggleGear() {
       this.gear = this.gear === 'FORWARD' ? 'BACKWARD' : 'FORWARD';
     },
@@ -351,6 +427,8 @@ export default {
     },
     onOpen() {
       this.trunStepChange();
+      this.setMotorFreq();
+      this.setServoFreq();
       this.durationEn = true;
       this.wsState = 2;
       this.start();
@@ -415,6 +493,13 @@ export default {
   transform-origin: center center;
   transform: translateY(-50%) translateX(50vw) rotate(90deg);
   /* transform: rotate(0deg) translateX(50%) translateY(-50%); */
+}
+
+.config-box {
+  width: 100dvh;
+  height: 50vw;
+  transform-origin: 25vw 25vw;
+  transform: translateX(0vw) rotate(90deg);
 }
 
 .label {

@@ -27,6 +27,7 @@ public:
     int getTicks();
     void setUp(uint8_t channel);
     void setUp(uint8_t channel, uint32_t freq, uint8_t resolution_bits);
+    void changeFrequency(uint32_t freq);
     void attachPin(uint8_t pin);
     void writeMicroseconds(uint32_t usec);
     void write(uint32_t duty);

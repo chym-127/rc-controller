@@ -47,8 +47,13 @@ void Esc::setUp(uint8_t channel, uint32_t freq, uint8_t resolution_bits)
     ledcSetup(channel, freq, resolution_bits);
     Serial.print("FREQ: ");
     Serial.println(this->freq);
-    Serial.println("RESOLUTION: ");
-    Serial.print(this->resolution);
+    Serial.print("RESOLUTION: ");
+    Serial.println(this->resolution);
+}
+
+void Esc::changeFrequency(uint32_t freq)
+{
+    ledcChangeFrequency(this->channel, freq, this->timerWidth);
 }
 
 // 绑定GOIP
@@ -58,7 +63,7 @@ void Esc::attachPin(uint8_t pin)
     ledcAttachPin(pin, this->channel);
 }
 
-// 写入脉宽 微秒
+// 写入脉宽
 void Esc::write(uint32_t val, uint32_t min, uint32_t max, uint32_t oMin, uint32_t oMax)
 {
     int duty = map(val, min, max, oMin, oMax);
@@ -88,8 +93,6 @@ void Esc::write(uint32_t duty)
     this->writeDuty(duty);
 }
 
-
-// 写入
 void Esc::write(uint32_t val, uint32_t min, uint32_t max)
 {
     int duty = map(val, min, max, 0, this->resolution);

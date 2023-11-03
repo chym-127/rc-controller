@@ -28,14 +28,17 @@ enum cmd_code
   FORWARD,
   BACKWARD,
   SET_SERVO_STEP,
-  SET_MOTOR_CONFIG,
+  SET_MOTOR_FREQ,
+  SET_SERVO_FREQ,
 };
 
-Esc motorEsc;
-int motorEscFreq = 50;
-int motorEscChannel = 1;
-
 Esc servoEsc;
+int servoEscFreq = 100;
+int servoEscChannel = 0;
+
+Esc motorEsc;
+int motorEscFreq = 500;
+int motorEscChannel = 1;
 
 int last_pos = 90;
 int new_pos = 90;
@@ -78,8 +81,10 @@ cmd_code hashit(String inString)
     return BACKWARD;
   if (inString == "SET_SERVO_STEP")
     return SET_SERVO_STEP;
-  if (inString == "SET_MOTOR_CONFIG")
-    return SET_MOTOR_CONFIG;
+  if (inString == "SET_MOTOR_FREQ")
+    return SET_MOTOR_FREQ;
+  if (inString == "SET_SERVO_FREQ")
+    return SET_SERVO_FREQ;
   return STOP;
 }
 
@@ -162,10 +167,16 @@ void onCommond(JSONVar obj)
     Serial.println(val);
     servoStep = val;
     break;
-  case SET_MOTOR_CONFIG:
-    Serial.print("SET_MOTOR_CONFIG: ");
+  case SET_MOTOR_FREQ:
+    Serial.print("SET_MOTOR_FREQ: ");
     Serial.println(val);
-    motorEsc.setUp(motorEscChannel, val, TIMER_10_BIT);
+    motorEsc.changeFrequency(val);
+    servoStep = val;
+    break;
+  case SET_SERVO_FREQ:
+    Serial.print("SET_SERVO_FREQ: ");
+    Serial.println(val);
+    servoEsc.changeFrequency(val);
     servoStep = val;
     break;
   case TURN:
@@ -229,11 +240,11 @@ void initPin()
 {
   pinMode(LED, OUTPUT);
 
-  servoEsc.setUp(0, 100, TIMER_10_BIT);
+  servoEsc.setUp(servoEscChannel, servoEscFreq, TIMER_10_BIT);
   servoEsc.attachPin(SERVO_PIN);
   servoEsc.write(90, 0, 180, servoEsc.resolution * (0.5 / 20), servoEsc.resolution * (2.5 / 20));
 
-  motorEsc.setUp(motorEscChannel);
+  motorEsc.setUp(motorEscChannel, motorEscFreq, TIMER_10_BIT);
   motorEsc.attachPin(LED);
 }
 
