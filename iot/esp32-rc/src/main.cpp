@@ -231,7 +231,7 @@ void initPin()
 
   servoEsc.setUp(0);
   servoEsc.attachPin(SERVO_PIN);
-  servoEsc.write(90, 0, 180, 500, 2500);
+  servoEsc.write(90, 0, 180, servoEsc.resolution * (0.5 / 20), servoEsc.resolution * (2.5 / 20));
 
   motorEsc.setUp(motorEscChannel);
   motorEsc.attachPin(LED);
@@ -265,7 +265,7 @@ void turn()
       }
       Serial.print("TRUN: ");
       Serial.println(last_pos);
-      servoEsc.write(last_pos, 0, 180, 500, 2500);
+      servoEsc.write(last_pos, 0, 180, servoEsc.resolution * (0.5 / 20), servoEsc.resolution * (2.5 / 20));
       previousMillis = currentMillis;
     }
   }

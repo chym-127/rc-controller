@@ -85,7 +85,7 @@ void Esc::writeDuty(uint32_t duty)
 
 void Esc::write(uint32_t duty)
 {
-    ledcWrite(this->channel, duty);
+    this->writeDuty(duty);
 }
 
 
