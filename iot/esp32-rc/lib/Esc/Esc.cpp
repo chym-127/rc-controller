@@ -53,12 +53,15 @@ void Esc::setUp(uint8_t channel, uint32_t freq, uint8_t resolution_bits)
 
 void Esc::changeFrequency(uint32_t freq)
 {
+    ledcDetachPin(this->pinNumber);
     ledcChangeFrequency(this->channel, freq, this->timerWidth);
+    this->attachPin(this->pinNumber);
 }
 
 // 绑定GOIP
 void Esc::attachPin(uint8_t pin)
 {
+    this->pinNumber = pin;
     pinMode(pin, OUTPUT);
     ledcAttachPin(pin, this->channel);
 }
