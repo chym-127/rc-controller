@@ -229,7 +229,7 @@ void initPin()
 {
   pinMode(LED, OUTPUT);
 
-  servoEsc.setUp(0);
+  servoEsc.setUp(0, 100, TIMER_10_BIT);
   servoEsc.attachPin(SERVO_PIN);
   servoEsc.write(90, 0, 180, servoEsc.resolution * (0.5 / 20), servoEsc.resolution * (2.5 / 20));
 
@@ -325,7 +325,7 @@ void setup()
   initPin();
   Serial.begin(115200);
   initWifi();
-  esp_wifi_set_max_tx_power(5);
+  esp_wifi_set_max_tx_power(1);
   initWebSocket();
   server.begin();
 }
