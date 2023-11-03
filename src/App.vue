@@ -19,7 +19,7 @@
             </span>
           </div>
 
-          <div style="flex: 2;">
+          <div style="flex: 2">
             <span class="font-14-500 c-666">最近命令:&nbsp;&nbsp;</span>
             <span class="font-14-500" :style="{ color: '#07c160' }">
               {{ currentCmd }}
@@ -169,7 +169,7 @@ export default {
       wheelDeg: 0,
       running: 0,
       preRunning: -1,
-      offset: 50,
+      offset: 0,
       gear: 'FORWARD', // FORWARD 前进 BACKWARD 后退 3 停止
       state: 1, //1 启动 2 停止
       wsState: 1, //1 连接中 2 已连接 3 断开连接

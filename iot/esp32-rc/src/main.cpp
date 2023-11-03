@@ -6,14 +6,10 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <ESP32Servo.h>
-#include <L298N.h>
 #include "esp_wifi.h"
-
+#include "Esc.h"
 
 #define LED 2
-#define M_IN_1 33
-#define M_IN_2 32
 #define SERVO_PIN 25
 #define MOTOR_PIN 26
 
@@ -32,10 +28,15 @@ enum cmd_code
   FORWARD,
   BACKWARD,
   SET_SERVO_STEP,
+  SET_MOTOR_CONFIG,
 };
 
-Servo myservo;
-L298N myMotor(MOTOR_PIN, M_IN_1, M_IN_2);
+Esc motorEsc;
+int motorEscFreq = 50;
+int motorEscChannel = 1;
+
+Esc servoEsc;
+
 int last_pos = 90;
 int new_pos = 90;
 int led_state = 0;
@@ -46,20 +47,12 @@ AsyncWebServer server(80);
 AsyncWebSocket ws("/ws");
 // wifi名称
 const char *ssid = "RC_C";
-// const char *ssid = "RCESP32";
 // wifi 密码
 const char *password = "15827330290";
-// const char *password = "123456789";
 unsigned long previousMillis = 0;
 unsigned long interval = 10000;
 unsigned long previousMillisLed = 0;
 unsigned long intervalLed = 200; // 未连接wifi 200ms 闪烁 连接wifi未连接遥控 1500ms 闪烁 都连接 长亮
-
-// static ip
-// IPAddress local_IP(192, 168, 133, 100);
-// IPAddress gateway(192, 168, 133, 1);
-// IPAddress subnet(255, 255, 255, 0);
-// IPAddress primaryDNS(192, 168, 133, 1);
 
 curren_state current = OFF_STATE;
 
@@ -85,6 +78,8 @@ cmd_code hashit(String inString)
     return BACKWARD;
   if (inString == "SET_SERVO_STEP")
     return SET_SERVO_STEP;
+  if (inString == "SET_MOTOR_CONFIG")
+    return SET_MOTOR_CONFIG;
   return STOP;
 }
 
@@ -102,7 +97,6 @@ void closeEngine()
     return;
   Serial.println("close engine");
   current = OFF_STATE;
-  myMotor.stop();
 }
 
 // 电机停止
@@ -110,7 +104,7 @@ void motorStop()
 {
   if (current == OFF_STATE)
     return;
-  myMotor.stop();
+  motorEsc.write(motorEsc.resolutionMiddle);
 }
 
 // 电机正转
@@ -118,8 +112,7 @@ void motorForward(int val)
 {
   if (current == OFF_STATE)
     return;
-  myMotor.setSpeed(val);
-  myMotor.forward();
+  motorEsc.write(val, 0, 255, motorEsc.resolutionMiddle + 1, motorEsc.resolution);
 }
 
 // 电机反转
@@ -127,8 +120,7 @@ void motorBackward(int val)
 {
   if (current == OFF_STATE)
     return;
-  myMotor.setSpeed(val);
-  myMotor.backward();
+  motorEsc.write(255 - val, 0, 255, 0, motorEsc.resolutionMiddle - 1);
 }
 
 // 处理远程命令
@@ -136,6 +128,7 @@ void onCommond(JSONVar obj)
 {
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
+
   // Serial.print(CMD);
   // Serial.print(" -- ");
   // Serial.print(val);
@@ -150,7 +143,8 @@ void onCommond(JSONVar obj)
     closeEngine();
     break;
   case STOP:
-    Serial.print("STOP MOTOR");
+    Serial.println("STOP MOTOR: ");
+    Serial.println(val);
     motorStop();
     break;
   case FORWARD:
@@ -166,6 +160,12 @@ void onCommond(JSONVar obj)
   case SET_SERVO_STEP:
     Serial.print("SET_SERVO_STEP: ");
     Serial.println(val);
+    servoStep = val;
+    break;
+  case SET_MOTOR_CONFIG:
+    Serial.print("SET_MOTOR_CONFIG: ");
+    Serial.println(val);
+    motorEsc.setUp(motorEscChannel, val, TIMER_10_BIT);
     servoStep = val;
     break;
   case TURN:
@@ -228,13 +228,13 @@ void initWifi()
 void initPin()
 {
   pinMode(LED, OUTPUT);
-  myservo.setPeriodHertz(50);
-  myservo.attach(SERVO_PIN);
-  myservo.write(last_pos + 10);
-  delay(100);
-  myservo.write(last_pos);
-  myMotor.setSpeed(0);
-  delay(15);
+
+  servoEsc.setUp(0);
+  servoEsc.attachPin(SERVO_PIN);
+  servoEsc.write(90, 0, 180, 500, 2500);
+
+  motorEsc.setUp(motorEscChannel);
+  motorEsc.attachPin(LED);
 }
 
 int turnInterval = 6;
@@ -265,7 +265,7 @@ void turn()
       }
       Serial.print("TRUN: ");
       Serial.println(last_pos);
-      myservo.write(last_pos);
+      servoEsc.write(last_pos, 0, 180, 500, 2500);
       previousMillis = currentMillis;
     }
   }
