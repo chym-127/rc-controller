@@ -1,6 +1,7 @@
 
 #define DEFAULT_uS_MIN 10   // 最小脉宽 单位：us
 #define DEFAULT_uS_MAX 2500 // 最大脉宽 单位：us
+#define TIMER_8_BIT 8       // 10位分辨率
 #define TIMER_10_BIT 10     // 10位分辨率
 #define TIMER_12_BIT 12     // 12位分辨率
 #define TIMER_15_BIT 15     // 15位分辨率

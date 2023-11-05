@@ -28,17 +28,24 @@ enum cmd_code
   FORWARD,
   BACKWARD,
   SET_SERVO_STEP,
-  SET_MOTOR_FREQ,
-  SET_SERVO_FREQ,
+  SET_MOTOR_FORWARD,
+  SET_MOTOR_BACKWARD,
+  SET_MOTOR_MIDDLE,
 };
 
 Esc servoEsc;
-int servoEscFreq = 100;
+int servoEscFreq = 50;
 int servoEscChannel = 0;
 
 Esc motorEsc;
 int motorEscFreq = 500;
-int motorEscChannel = 1;
+int motorEscChannel = 2;
+
+int motorEscMiddle = 75;
+int motorEscBackMin = 76;
+int motorEscBackMax = 99;
+int motorEscForWardMax = 75;
+int motorEscForWardMin = 25;
 
 int last_pos = 90;
 int new_pos = 90;
@@ -81,10 +88,12 @@ cmd_code hashit(String inString)
     return BACKWARD;
   if (inString == "SET_SERVO_STEP")
     return SET_SERVO_STEP;
-  if (inString == "SET_MOTOR_FREQ")
-    return SET_MOTOR_FREQ;
-  if (inString == "SET_SERVO_FREQ")
-    return SET_SERVO_FREQ;
+  if (inString == "SET_MOTOR_FORWARD")
+    return SET_MOTOR_FORWARD;
+  if (inString == "SET_MOTOR_BACKWARD")
+    return SET_MOTOR_BACKWARD;
+  if (inString == "SET_MOTOR_MIDDLE")
+    return SET_MOTOR_MIDDLE;
   return STOP;
 }
 
@@ -109,7 +118,7 @@ void motorStop()
 {
   if (current == OFF_STATE)
     return;
-  motorEsc.write(motorEsc.resolutionMiddle);
+  motorEsc.write(motorEsc.resolution * (motorEscMiddle / 100.0));
 }
 
 // 电机正转
@@ -117,7 +126,7 @@ void motorForward(int val)
 {
   if (current == OFF_STATE)
     return;
-  motorEsc.write(val, 0, 255, motorEsc.resolutionMiddle + 1, motorEsc.resolution);
+  motorEsc.write(val, 0, 255, motorEsc.resolution * (motorEscForWardMin / 100.0), motorEsc.resolution * (motorEscForWardMax / 100.0));
 }
 
 // 电机反转
@@ -125,7 +134,7 @@ void motorBackward(int val)
 {
   if (current == OFF_STATE)
     return;
-  motorEsc.write(255 - val, 0, 255, 0, motorEsc.resolutionMiddle - 1);
+  motorEsc.write(val, 0, 255, motorEsc.resolution * (motorEscBackMin / 100.0), motorEsc.resolution * (motorEscBackMax / 100.0));
 }
 
 // 处理远程命令
@@ -134,10 +143,10 @@ void onCommond(JSONVar obj)
   String CMD = String((const char *)obj["COMMOND"]);
   int val = (int)obj["VALUE"];
 
-  // Serial.print(CMD);
-  // Serial.print(" -- ");
-  // Serial.print(val);
-  // Serial.println();
+  Serial.print(CMD);
+  Serial.print(" -- ");
+  Serial.print(val);
+  Serial.println();
 
   switch (hashit(CMD))
   {
@@ -148,36 +157,39 @@ void onCommond(JSONVar obj)
     closeEngine();
     break;
   case STOP:
-    Serial.println("STOP MOTOR: ");
-    Serial.println(val);
     motorStop();
     break;
   case FORWARD:
-    Serial.print("FORWARD: ");
-    Serial.println(val);
     motorForward(val);
     break;
   case BACKWARD:
-    Serial.print("BACKWARD: ");
-    Serial.println(val);
     motorBackward(val);
     break;
   case SET_SERVO_STEP:
-    Serial.print("SET_SERVO_STEP: ");
-    Serial.println(val);
     servoStep = val;
     break;
-  case SET_MOTOR_FREQ:
-    Serial.print("SET_MOTOR_FREQ: ");
-    Serial.println(val);
-    motorEsc.changeFrequency(val);
-    servoStep = val;
+  case SET_MOTOR_MIDDLE:
+    motorEscMiddle = val;
     break;
-  case SET_SERVO_FREQ:
-    Serial.print("SET_SERVO_FREQ: ");
-    Serial.println(val);
-    servoEsc.changeFrequency(val);
-    servoStep = val;
+  case SET_MOTOR_FORWARD:
+    if (val > 0)
+    {
+      motorEscForWardMax = val;
+    }
+    else
+    {
+      motorEscForWardMin = -val;
+    }
+    break;
+  case SET_MOTOR_BACKWARD:
+    if (val > 0)
+    {
+      motorEscBackMax = val;
+    }
+    else
+    {
+      motorEscBackMin = -val;
+    }
     break;
   case TURN:
     if (current == OFF_STATE)
@@ -244,8 +256,8 @@ void initPin()
   servoEsc.attachPin(SERVO_PIN);
   servoEsc.write(90, 0, 180, servoEsc.resolution * (0.5 / 20), servoEsc.resolution * (2.5 / 20));
 
-  motorEsc.setUp(motorEscChannel, motorEscFreq, TIMER_10_BIT);
-  motorEsc.attachPin(LED);
+  motorEsc.setUp(motorEscChannel, motorEscFreq, TIMER_12_BIT);
+  motorEsc.attachPin(MOTOR_PIN);
 }
 
 int turnInterval = 6;
