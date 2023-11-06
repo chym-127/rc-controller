@@ -1,0 +1,8 @@
+{
+    "name": "RC-Controller",
+    "short_name": "RC-Controller",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#000",
+    "description": "A simply esc app."
+}
