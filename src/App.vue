@@ -73,7 +73,7 @@
               <p class="font-14-500 c-666 mr-12 labelW">转向速度:</p>
               <van-stepper
                 disable-input
-                :min="0"
+                :min="1"
                 :max="30"
                 v-model="config.trunStep"
                 @change="trunStepChange"
@@ -92,8 +92,8 @@
               :default-pos="offset"
               :acceleration="config.forwardAcceleration"
               @onChange="runningChange"
-              :min="config.minSpeed"
-              :max="255"
+              :min="config.forwardMinSpeed"
+              :max="config.forwardMaxSpeed"
               :step="1"
             >
               <span class="font-16-500 c-333">前进</span>
@@ -103,8 +103,8 @@
               :default-pos="offset"
               :acceleration="config.backwardAcceleration"
               @onChange="backChange"
-              :min="offset"
-              :max="255"
+              :min="config.backwardMinSpeed"
+              :max="config.backwardMaxSpeed"
               :step="1"
             >
               <span class="font-16-500 c-333">倒车</span>
@@ -160,8 +160,14 @@
       <div class="config-box flex flex-row px-24 py-12">
         <div class="flex-1">
           <div class="flex flex-row items-center mb-12">
-            <p class="font-14-500 c-666 mr-12 labelW">最小启动速度:</p>
-            <van-stepper disable-input :min="0" :max="255" v-model="config.minSpeed" step="5" />
+            <p class="font-14-500 c-666 mr-12 labelW">前进速度区间:</p>
+            <van-stepper disable-input :min="0" :max="255" v-model="config.forwardMinSpeed" class="mr-8" step="1" />
+            <van-stepper disable-input :min="0" :max="255" v-model="config.forwardMaxSpeed" step="1" />
+          </div>
+          <div class="flex flex-row items-center mb-12">
+            <p class="font-14-500 c-666 mr-12 labelW">后退速度区间:</p>
+            <van-stepper disable-input :min="0" :max="255" v-model="config.backwardMinSpeed" class="mr-8" step="1" />
+            <van-stepper disable-input :min="0" :max="255" v-model="config.backwardMaxSpeed" step="1" />
           </div>
           <div class="flex flex-row items-center mb-12">
             <p class="font-14-500 c-666 mr-12 labelW">前进加速度:</p>
@@ -252,7 +258,6 @@ export default {
       checked: false,
       angles: 90,
       config: {
-        minSpeed: 0,
         trunRange: 60,
         forwardSpeed: 10,
         keepForwardSpeed: false,
@@ -266,6 +271,10 @@ export default {
         motorEscForWardMax: 99,
         motorEscBackWardMin: 25,
         motorEscBackWardMax: 73,
+        forwardMinSpeed: 0,
+        forwardMaxSpeed: 255,
+        backwardMinSpeed: 0,
+        backwardMaxSpeed: 255,
       },
       currentCmd: '',
       preAngles: -1,
@@ -342,7 +351,6 @@ export default {
   methods: {
     resetDefault() {
       this.config = {
-        minSpeed: 0,
         trunRange: 60,
         forwardSpeed: 10,
         keepForwardSpeed: false,
@@ -356,6 +364,10 @@ export default {
         motorEscForWardMax: 99,
         motorEscBackWardMin: 25,
         motorEscBackWardMax: 73,
+        forwardMinSpeed: 0,
+        forwardMaxSpeed: 255,
+        backwardMinSpeed: 0,
+        backwardMaxSpeed: 255,
       };
       this.onOpen();
     },
